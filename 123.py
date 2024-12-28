@@ -22,10 +22,6 @@ y = (screenHeight // 2) - (appheight // 2)
 app.geometry(f"{appwidth}x{appheight}+{int(x)}+{int(y)}")
 app.resizable(True, True)
 
-# Criar uma barra de navegação no topo (simulando um menu)
-menu_bar = ctk.CTkFrame(app, height=50, corner_radius=0)
-menu_bar.grid(row=0, column=0, columnspan=2, sticky="nsew")
-
 # Função para mostrar o frame principal
 def show_main_frame():
     main_frame.tkraise()
@@ -34,12 +30,23 @@ def show_main_frame():
 def show_add_game_frame():
     add_game_frame.tkraise()
 
+# Função para mostrar o frame de login
+def show_login_frame():
+    login_frame.tkraise()
+
+# Criar uma barra de navegação no topo (simulando um menu)
+menu_bar = ctk.CTkFrame(app, height=50, corner_radius=0)
+menu_bar.grid(row=0, column=0, columnspan=2, sticky="nsew")
+
 # Adicionar botões à barra de menu
 btn_main = ctk.CTkButton(menu_bar, text="Main", width=100, command=show_main_frame)
 btn_main.pack(side="left", padx=10, pady=10)
 
 btn_add_game = ctk.CTkButton(menu_bar, text="Add Game", width=100, command=show_add_game_frame)
 btn_add_game.pack(side="left", padx=10, pady=10)
+
+btn_login = ctk.CTkButton(menu_bar, text="Login", width=100, command=show_login_frame)
+btn_login.pack(side="right", padx=10, pady=10)
 
 btn_profile = ctk.CTkButton(menu_bar, text="Profile", width=100, command=lambda: print("Profile clicked"))
 btn_profile.pack(side="right", padx=10, pady=10)
@@ -94,6 +101,9 @@ main_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
 add_game_frame = ctk.CTkFrame(app)
 add_game_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
 
+login_frame = ctk.CTkFrame(app)
+login_frame.grid(row=0, column=0, rowspan=2, columnspan=2, sticky="nsew")
+
 # Conteúdo do frame principal
 main_list_frame = ctk.CTkFrame(main_frame, width=300)
 main_list_frame.pack(side="left", fill="y", padx=10, pady=10)
@@ -125,19 +135,35 @@ entry_game_info.grid(row=1, column=1, padx=10, pady=10)
 btn_add_game = ctk.CTkButton(entry_frame, text="Adicionar Jogo", command=add_game)
 btn_add_game.grid(row=2, column=0, columnspan=2, pady=10)
 
-# Lista de jogos na aba de adicionar jogos
 listbox_frame_add = ctk.CTkFrame(add_game_frame)
 listbox_frame_add.pack(fill="both", expand=True, padx=10, pady=10)
 
 listbox_games_add = Listbox(listbox_frame_add)
 listbox_games_add.pack(fill="both", expand=True)
 
+# Conteúdo do frame de login
+login_label = ctk.CTkLabel(login_frame, text="Login", font=("Arial", 24))
+login_label.pack(pady=20)
+
+username_label = ctk.CTkLabel(login_frame, text="Username:")
+username_label.pack(pady=10)
+username_entry = ctk.CTkEntry(login_frame)
+username_entry.pack(pady=10)
+
+password_label = ctk.CTkLabel(login_frame, text="Password:")
+password_label.pack(pady=10)
+password_entry = ctk.CTkEntry(login_frame, show="*")
+password_entry.pack(pady=10)
+
+login_button = ctk.CTkButton(login_frame, text="Login", command=show_main_frame)
+login_button.pack(pady=20)
+
 # Configuração de layout responsivo
 app.grid_rowconfigure(1, weight=1)
 app.grid_columnconfigure(1, weight=1)
 
-# Mostrar o frame principal inicialmente
-show_main_frame()
+# Mostrar o frame de login inicialmente
+show_login_frame()
 
 # Carregar jogos ao iniciar a aplicação
 load_games()
