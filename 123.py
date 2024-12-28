@@ -1,9 +1,8 @@
 import customtkinter as ctk
 from tkinter import Listbox
-import json
 
-# Caminho para o ficheiro JSON onde os jogos serão armazenados
-GAMES_FILE = "games.json"
+# Caminho para o ficheiro onde os jogos serão armazenados
+GAMES_FILE = "games.txt"
 
 # Configurar o tema e a aparência
 ctk.set_appearance_mode("system")  # Pode ser "light", "dark" ou "system"
@@ -48,22 +47,25 @@ btn_profile.pack(side="right", padx=10, pady=10)
 # Lista para armazenar os jogos
 games = []
 
-# Função para carregar jogos do ficheiro JSON
+# Função para carregar jogos do ficheiro
 def load_games():
     global games
+    games.clear()
     try:
         with open(GAMES_FILE, "r") as file:
-            games = json.load(file)
-            for game in games:
-                listbox_games.insert(ctk.END, game["name"])
-                listbox_games_add.insert(ctk.END, game["name"])
+            for line in file:
+                name, info = line.strip().split("|")
+                games.append({"name": name, "info": info})
+                listbox_games.insert(ctk.END, name)
+                listbox_games_add.insert(ctk.END, name)
     except FileNotFoundError:
-        games = []
+        pass
 
-# Função para salvar jogos no ficheiro JSON
+# Função para salvar jogos no ficheiro
 def save_games():
     with open(GAMES_FILE, "w") as file:
-        json.dump(games, file)
+        for game in games:
+            file.write(f"{game['name']}|{game['info']}\n")
 
 # Função para adicionar um jogo
 def add_game():
