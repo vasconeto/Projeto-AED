@@ -95,6 +95,17 @@ def edit_game():
         save_button = ctk.CTkButton(edit_window, text="Salvar", command=save_edit)
         save_button.pack(pady=20)
 
+# Função para remover um jogo
+def remove_game():
+    selected_index = listbox_games.curselection()
+    if selected_index:
+        # Remover o jogo da lista e do ficheiro
+        games.pop(selected_index[0])
+        save_games(games)
+        listbox_games.delete(selected_index[0])
+        listbox_games_add.delete(selected_index[0])
+        info_label.configure(text="Informações do Jogo: Selecione um jogo para ver os detalhes.")
+
 # Inicializar a aplicação
 app = ctk.CTk()
 app.title("Game Managing App")
@@ -143,7 +154,10 @@ info_label = ctk.CTkLabel(main_info_frame, text="Informações do Jogo: Selecion
 info_label.pack(pady=10, padx=20)
 
 btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
-btn_edit_game.pack(pady=20)
+btn_edit_game.pack(pady=10)
+
+btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=remove_game)
+btn_remove_game.pack(pady=10)
 
 # Frame para adicionar jogos
 add_game_frame = ctk.CTkFrame(app)
