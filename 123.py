@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import Listbox
+from tkinter import Listbox, Toplevel
 
 # Caminho para o ficheiro onde os jogos serão armazenados
 GAMES_FILE = "games.txt"
@@ -54,6 +54,47 @@ def show_game_info(event):
         selected_game = games[selected_index[0]]
         info_label.configure(text=f"Informações do Jogo: {selected_game['info']}")
 
+# Função para editar um jogo
+def edit_game():
+    selected_index = listbox_games.curselection()
+    if selected_index:
+        # Criar uma janela para editar o jogo
+        edit_window = Toplevel(app)
+        edit_window.title("Editar Jogo")
+        edit_window.geometry("400x300")
+
+        selected_game = games[selected_index[0]]
+
+        # Campos de entrada para o nome e as informações do jogo
+        label_name = ctk.CTkLabel(edit_window, text="Nome do Jogo:")
+        label_name.pack(pady=10)
+        entry_name = ctk.CTkEntry(edit_window)
+        entry_name.insert(0, selected_game["name"])
+        entry_name.pack(pady=10)
+
+        label_info = ctk.CTkLabel(edit_window, text="Informações do Jogo:")
+        label_info.pack(pady=10)
+        entry_info = ctk.CTkEntry(edit_window)
+        entry_info.insert(0, selected_game["info"])
+        entry_info.pack(pady=10)
+
+        # Função para salvar as alterações
+        def save_edit():
+            new_name = entry_name.get()
+            new_info = entry_info.get()
+            if new_name and new_info:
+                games[selected_index[0]] = {"name": new_name, "info": new_info}
+                save_games(games)
+                listbox_games.delete(selected_index[0])
+                listbox_games.insert(selected_index[0], new_name)
+                listbox_games_add.delete(selected_index[0])
+                listbox_games_add.insert(selected_index[0], new_name)
+                edit_window.destroy()
+        
+        # Botão para salvar as alterações
+        save_button = ctk.CTkButton(edit_window, text="Salvar", command=save_edit)
+        save_button.pack(pady=20)
+
 # Inicializar a aplicação
 app = ctk.CTk()
 app.title("Game Managing App")
@@ -100,6 +141,9 @@ main_info_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
 
 info_label = ctk.CTkLabel(main_info_frame, text="Informações do Jogo: Selecione um jogo para ver os detalhes.", font=("Arial", 18))
 info_label.pack(pady=10, padx=20)
+
+btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
+btn_edit_game.pack(pady=20)
 
 # Frame para adicionar jogos
 add_game_frame = ctk.CTkFrame(app)
