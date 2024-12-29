@@ -123,15 +123,21 @@ def open_search_popup():
     search_entry = ctk.CTkEntry(search_window)
     search_entry.pack(pady=10)
 
-    listbox_search_results = Listbox(search_window)
-    listbox_search_results.pack(fill="both", expand=True, pady=10)
-
     def search_games():
         search_query = search_entry.get().lower()
-        listbox_search_results.delete(0, ctk.END)
-        for game in games:
-            if search_query in game["name"].lower():
-                listbox_search_results.insert(ctk.END, game["name"])
+        listbox_games.delete(0, ctk.END)  # Limpar a lista principal
+        found_games = [game for game in games if search_query in game["name"].lower()]
+        
+        if found_games:
+            for game in found_games:
+                listbox_games.insert(ctk.END, game["name"])
+        else:
+            messagebox.showinfo("Pesquisa", "Nenhum jogo encontrado com esse nome.")
+            # Repopular a lista com todos os jogos, caso não haja resultados
+            for game in games:
+                listbox_games.insert(ctk.END, game["name"])
+        
+        search_window.destroy()
 
     search_button = ctk.CTkButton(search_window, text="Pesquisar", command=search_games)
     search_button.pack(pady=10)
