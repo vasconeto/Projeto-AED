@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import Listbox, Toplevel
+from tkinter import Listbox, Toplevel, messagebox
 
 # Caminho para o ficheiro onde os jogos serão armazenados
 GAMES_FILE = "games.txt"
@@ -30,6 +30,7 @@ def save_games(games):
 # Funções de navegação
 def show_main_frame():
     main_frame.tkraise()
+    clear_game_info()
 
 def show_add_game_frame():
     add_game_frame.tkraise()
@@ -49,10 +50,19 @@ def add_game():
 
 # Função para exibir informações de um jogo selecionado
 def show_game_info(event):
+    clear_game_info()
     selected_index = listbox_games.curselection()
     if selected_index:
         selected_game = games[selected_index[0]]
         info_label.configure(text=f"Informações do Jogo: {selected_game['info']}")
+        btn_edit_game.pack(pady=10)
+        btn_remove_game.pack(pady=10)
+
+# Função para limpar informações de jogos
+def clear_game_info():
+    info_label.configure(text="Informações do Jogo: Selecione um jogo para ver os detalhes.")
+    btn_edit_game.pack_forget()
+    btn_remove_game.pack_forget()
 
 # Função para editar um jogo
 def edit_game():
@@ -99,15 +109,32 @@ def remove_game():
         save_games(games)
         listbox_games.delete(selected_index[0])
         listbox_games_add.delete(selected_index[0])
-        info_label.configure(text="Informações do Jogo: Selecione um jogo para ver os detalhes.")
+        clear_game_info()
 
-# Função para pesquisar jogos
-def search_games():
-    search_query = search_entry.get().lower()
-    listbox_search_results.delete(0, ctk.END)
-    for game in games:
-        if search_query in game["name"].lower():
-            listbox_search_results.insert(ctk.END, game["name"])
+# Função para abrir o popup de pesquisa
+def open_search_popup():
+    search_window = Toplevel(app)
+    search_window.title("Pesquisar Jogos")
+    search_window.geometry("400x300")
+
+    search_label = ctk.CTkLabel(search_window, text="Digite o nome do jogo:")
+    search_label.pack(pady=10)
+
+    search_entry = ctk.CTkEntry(search_window)
+    search_entry.pack(pady=10)
+
+    listbox_search_results = Listbox(search_window)
+    listbox_search_results.pack(fill="both", expand=True, pady=10)
+
+    def search_games():
+        search_query = search_entry.get().lower()
+        listbox_search_results.delete(0, ctk.END)
+        for game in games:
+            if search_query in game["name"].lower():
+                listbox_search_results.insert(ctk.END, game["name"])
+
+    search_button = ctk.CTkButton(search_window, text="Pesquisar", command=search_games)
+    search_button.pack(pady=10)
 
 # Inicializar a aplicação
 app = ctk.CTk()
@@ -136,6 +163,9 @@ btn_main.pack(side="left", padx=10, pady=10)
 btn_add_game = ctk.CTkButton(menu_bar, text="Add Game", width=100, command=show_add_game_frame)
 btn_add_game.pack(side="left", padx=10, pady=10)
 
+btn_search_game = ctk.CTkButton(menu_bar, text="Search", width=100, command=open_search_popup)
+btn_search_game.pack(side="right", padx=10, pady=10)
+
 # Frame principal
 main_frame = ctk.CTkFrame(app)
 main_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
@@ -154,10 +184,7 @@ info_label = ctk.CTkLabel(main_info_frame, text="Informações do Jogo: Selecion
 info_label.pack(pady=10, padx=20)
 
 btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
-btn_edit_game.pack(pady=10)
-
 btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=remove_game)
-btn_remove_game.pack(pady=10)
 
 # Frame para adicionar jogos
 add_game_frame = ctk.CTkFrame(app)
@@ -185,33 +212,12 @@ listbox_frame_add.pack(fill="both", expand=True, padx=10, pady=10)
 listbox_games_add = Listbox(listbox_frame_add)
 listbox_games_add.pack(fill="both", expand=True)
 
-# Frame de pesquisa
-search_frame = ctk.CTkFrame(main_frame)
-search_frame.pack(fill="x", pady=10, padx=20)
-
-search_label = ctk.CTkLabel(search_frame, text="Pesquisar Jogos:")
-search_label.pack(side="left", padx=10)
-
-search_entry = ctk.CTkEntry(search_frame)
-search_entry.pack(side="left", padx=10)
-
-btn_search = ctk.CTkButton(search_frame, text="Pesquisar", command=search_games)
-btn_search.pack(side="left", padx=10)
-
-listbox_search_results = Listbox(search_frame)
-listbox_search_results.pack(fill="both", expand=True, pady=10)
-
-# Configuração de layout responsivo
-app.grid_rowconfigure(1, weight=1)
-app.grid_columnconfigure(1, weight=1)
-
-# Mostrar o frame principal inicialmente
+# Mostrar o frame principal por padrão
 show_main_frame()
 
-# Carregar os jogos na lista
+# Preencher listboxes com jogos
 for game in games:
     listbox_games.insert(ctk.END, game["name"])
     listbox_games_add.insert(ctk.END, game["name"])
 
-# Iniciar o loop principal
 app.mainloop()
