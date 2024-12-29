@@ -5,8 +5,8 @@ from tkinter import Listbox, Toplevel
 GAMES_FILE = "games.txt"
 
 # Configurar o tema e a aparência
-ctk.set_appearance_mode("system")  # Pode ser "light", "dark" ou "system"
-ctk.set_default_color_theme("dark-blue")  # Outras opções: "green", "dark-blue"
+ctk.set_appearance_mode("system")
+ctk.set_default_color_theme("dark-blue")
 
 # Funções para manipular ficheiros
 def load_games():
@@ -58,14 +58,12 @@ def show_game_info(event):
 def edit_game():
     selected_index = listbox_games.curselection()
     if selected_index:
-        # Criar uma janela para editar o jogo
         edit_window = Toplevel(app)
         edit_window.title("Editar Jogo")
         edit_window.geometry("400x300")
 
         selected_game = games[selected_index[0]]
 
-        # Campos de entrada para o nome e as informações do jogo
         label_name = ctk.CTkLabel(edit_window, text="Nome do Jogo:")
         label_name.pack(pady=10)
         entry_name = ctk.CTkEntry(edit_window)
@@ -78,7 +76,6 @@ def edit_game():
         entry_info.insert(0, selected_game["info"])
         entry_info.pack(pady=10)
 
-        # Função para salvar as alterações
         def save_edit():
             new_name = entry_name.get()
             new_info = entry_info.get()
@@ -91,7 +88,6 @@ def edit_game():
                 listbox_games_add.insert(selected_index[0], new_name)
                 edit_window.destroy()
         
-        # Botão para salvar as alterações
         save_button = ctk.CTkButton(edit_window, text="Salvar", command=save_edit)
         save_button.pack(pady=20)
 
@@ -99,12 +95,19 @@ def edit_game():
 def remove_game():
     selected_index = listbox_games.curselection()
     if selected_index:
-        # Remover o jogo da lista e do ficheiro
         games.pop(selected_index[0])
         save_games(games)
         listbox_games.delete(selected_index[0])
         listbox_games_add.delete(selected_index[0])
         info_label.configure(text="Informações do Jogo: Selecione um jogo para ver os detalhes.")
+
+# Função para pesquisar jogos
+def search_games():
+    search_query = search_entry.get().lower()
+    listbox_search_results.delete(0, ctk.END)
+    for game in games:
+        if search_query in game["name"].lower():
+            listbox_search_results.insert(ctk.END, game["name"])
 
 # Inicializar a aplicação
 app = ctk.CTk()
@@ -132,9 +135,6 @@ btn_main.pack(side="left", padx=10, pady=10)
 
 btn_add_game = ctk.CTkButton(menu_bar, text="Add Game", width=100, command=show_add_game_frame)
 btn_add_game.pack(side="left", padx=10, pady=10)
-
-btn_profile = ctk.CTkButton(menu_bar, text="Profile", width=100, command=lambda: print("Profile clicked"))
-btn_profile.pack(side="right", padx=10, pady=10)
 
 # Frame principal
 main_frame = ctk.CTkFrame(app)
@@ -184,6 +184,22 @@ listbox_frame_add.pack(fill="both", expand=True, padx=10, pady=10)
 
 listbox_games_add = Listbox(listbox_frame_add)
 listbox_games_add.pack(fill="both", expand=True)
+
+# Frame de pesquisa
+search_frame = ctk.CTkFrame(main_frame)
+search_frame.pack(fill="x", pady=10, padx=20)
+
+search_label = ctk.CTkLabel(search_frame, text="Pesquisar Jogos:")
+search_label.pack(side="left", padx=10)
+
+search_entry = ctk.CTkEntry(search_frame)
+search_entry.pack(side="left", padx=10)
+
+btn_search = ctk.CTkButton(search_frame, text="Pesquisar", command=search_games)
+btn_search.pack(side="left", padx=10)
+
+listbox_search_results = Listbox(search_frame)
+listbox_search_results.pack(fill="both", expand=True, pady=10)
 
 # Configuração de layout responsivo
 app.grid_rowconfigure(1, weight=1)
