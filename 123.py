@@ -156,6 +156,10 @@ y = (screenHeight // 2) - (appheight // 2)
 app.geometry(f"{appwidth}x{appheight}+{int(x)}+{int(y)}")
 app.resizable(True, True)
 
+# Configurar o grid principal para permitir redimensionamento
+app.grid_rowconfigure(1, weight=1)  # Linha 1: Frames principais
+app.grid_columnconfigure(0, weight=1)  # Coluna 0: Frames principais
+
 # Lista para armazenar os jogos
 games = load_games()
 
@@ -174,17 +178,21 @@ btn_search_game.pack(side="right", padx=10, pady=10)
 
 # Frame principal
 main_frame = ctk.CTkFrame(app)
-main_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
+main_frame.grid(row=1, column=0, sticky="nsew")
+
+main_frame.grid_rowconfigure(0, weight=1)
+main_frame.grid_columnconfigure(0, weight=1)
+main_frame.grid_columnconfigure(1, weight=3)
 
 main_list_frame = ctk.CTkFrame(main_frame, width=300)
-main_list_frame.pack(side="left", fill="y", padx=10, pady=10)
+main_list_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
 listbox_games = Listbox(main_list_frame)
 listbox_games.pack(fill="both", expand=True)
 listbox_games.bind('<<ListboxSelect>>', show_game_info)
 
 main_info_frame = ctk.CTkFrame(main_frame)
-main_info_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+main_info_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
 
 info_label = ctk.CTkLabel(main_info_frame, text="Informações do Jogo: Selecione um jogo para ver os detalhes.", font=("Arial", 18))
 info_label.pack(pady=10, padx=20)
@@ -194,7 +202,10 @@ btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=re
 
 # Frame para adicionar jogos
 add_game_frame = ctk.CTkFrame(app)
-add_game_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
+add_game_frame.grid(row=1, column=0, sticky="nsew")
+
+add_game_frame.grid_rowconfigure(0, weight=1)
+add_game_frame.grid_columnconfigure(0, weight=1)
 
 entry_frame = ctk.CTkFrame(add_game_frame)
 entry_frame.pack(pady=20, padx=20, fill="x")
