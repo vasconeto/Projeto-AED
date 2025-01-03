@@ -8,6 +8,7 @@ GAMES_FILE = "games.txt"
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("dark-blue")
 
+
 # Funções para manipular ficheiros
 def load_games():
     """Carrega os jogos do ficheiro para a lista."""
