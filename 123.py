@@ -143,6 +143,30 @@ def open_search_popup():
     search_button = ctk.CTkButton(search_window, text="Pesquisar", command=search_games)
     search_button.pack(pady=10)
 
+# def login():
+#     def handleLogin(): 
+
+#         username = ""
+#         password = ""
+
+#         if entryUser.get() == username and entryPass.get() == password: 
+#             customtkinter.showinfo(title="Login Successful",message="You have logged in Successfully") 
+#         elif entryUser.get() == username and entryPass.get() != password: 
+#             CTkMessagebox.showwarning(title='Wrong password',message='Please check your password') 
+#         elif entryUser.get() != username and entryPass.get() == password: 
+#             CTkMessagebox.showwarning(title='Wrong username',message='Please check your username') 
+#         else: 
+#             CTkMessagebox.showerror(title="Login Failed",message="Invalid Username and password") 
+
+# def register():
+#     def handleRegister(): 
+
+#         username = entryUser.get()
+#         password = entryPass.get()
+#         passwordVerification = passVerification.get()
+
+#         # Verificaçao da password
+
 # Inicializar a aplicação
 app = ctk.CTk()
 app.title("Game Managing App")
@@ -239,3 +263,47 @@ for game in games:
     listbox_games_add.insert(ctk.END, game["name"])
 
 app.mainloop()
+
+
+
+Frame
+frame = customtkinter.CTkFrame(master=app) 
+frame.pack(pady=20,padx=20,fill='both',expand=True) 
+
+Entry
+entryUser= customtkinter.CTkEntry(master=frame, placeholder_text="Username") 
+entryUser.pack(pady=12,padx=10) 
+
+entryPass= customtkinter.CTkEntry(master=frame, placeholder_text="Password", show="*") 
+entryPass.pack(pady=12,padx=10) 
+
+Button
+buttonLogin = customtkinter.CTkButton(master=frame,text='Login', command=login) 
+buttonLogin.pack(pady=12,padx=10) 
+
+CheckBox
+checkboxRemember = customtkinter.CTkCheckBox(master=frame, text='Remember Me') 
+checkboxRemember.pack(pady=12,padx=10) 
+
+Frame
+frame = customtkinter.CTkFrame(master=app) 
+frame.pack(pady=20,padx=20,fill='both',expand=True) 
+
+Entry
+entryUser= customtkinter.CTkEntry(master=frame, placeholder_text="Username") 
+entryUser.pack(pady=12,padx=10) 
+
+entryPass= customtkinter.CTkEntry(master=frame, placeholder_text="Password", show="") 
+entryPass.pack(pady=12,padx=10) 
+
+passVerification= customtkinter.CTkEntry(master=frame, placeholder_text="Repeat Password", show="") 
+passVerification.pack(pady=12,padx=10) 
+
+Button
+buttonLogin = customtkinter.CTkButton(master=frame,text='Register', command=register) 
+buttonLogin.pack(pady=12,padx=10) 
+
+CheckBox
+checkboxRemember = customtkinter.CTkCheckBox(master=frame, text='Remember Me') 
+checkboxRemember.pack(pady=12,padx=10) 
+
