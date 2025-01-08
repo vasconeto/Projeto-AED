@@ -119,6 +119,15 @@ def remove_game():
         listbox_games.delete(selected_index[0])
         clear_game_info()
 
+def search_games():
+    query = search_entry.get().lower()
+    listbox_games.delete(0, ctk.END)
+    for game in games:
+        if query in game["name"].lower():
+            listbox_games.insert(ctk.END, game["name"])
+    if not listbox_games.size():
+        listbox_games.insert(ctk.END, "Nenhum jogo encontrado.")
+
 def login():
     global current_user, games
 
@@ -255,6 +264,18 @@ listbox_games = Listbox(main_list_frame)
 listbox_games.pack(fill="both", expand=True)
 listbox_games.bind('<<ListboxSelect>>', show_game_info)
 
+search_frame = ctk.CTkFrame(main_list_frame)
+search_frame.pack(fill="x", pady=5)
+
+search_label = ctk.CTkLabel(search_frame, text="Pesquisar:")
+search_label.pack(side="left", padx=5)
+
+search_entry = ctk.CTkEntry(search_frame)
+search_entry.pack(side="left", fill="x", expand=True, padx=5)
+
+search_button = ctk.CTkButton(search_frame, text="Procurar", command=search_games)
+search_button.pack(side="left", padx=5)
+
 main_info_frame = ctk.CTkFrame(main_frame)
 main_info_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
 
@@ -263,7 +284,6 @@ info_label.pack(pady=10, padx=20)
 
 btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
 btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=remove_game)
-
 
 # Frame para adicionar jogos
 add_game_frame = ctk.CTkFrame(app)
