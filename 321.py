@@ -1,14 +1,15 @@
 import customtkinter as ctk
 from tkinter import Listbox, Toplevel, messagebox
 
-# Caminho para o ficheiro onde os jogos serão armazenados
+# Caminhos para os ficheiros
 GAMES_FILE = "games.txt"
+USERS_FILE = "users.txt"
 
 # Configurar o tema e a aparência
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("dark-blue")
 
-# Funções para manipular ficheiros
+# Funções para manipular ficheiros de jogos
 def load_games():
     """Carrega os jogos do ficheiro para a lista."""
     games = []
@@ -26,6 +27,24 @@ def save_games(games):
     with open(GAMES_FILE, "w") as file:
         for game in games:
             file.write(f"{game['name']}|{game['info']}\n")
+
+# Funções para manipular ficheiros de utilizadores
+def load_users():
+    """Carrega os utilizadores do ficheiro."""
+    users = {}
+    try:
+        with open(USERS_FILE, "r") as file:
+            for line in file:
+                username, password = line.strip().split("|")
+                users[username] = password
+    except FileNotFoundError:
+        pass
+    return users
+
+def save_user(username, password):
+    """Guarda um novo utilizador no ficheiro."""
+    with open(USERS_FILE, "a") as file:
+        file.write(f"{username}|{password}\n")
 
 # Funções de navegação
 def show_main_frame():
@@ -153,7 +172,7 @@ def login():
     username = entry_login_user.get()
     password = entry_login_pass.get()
 
-    if username == "admin" and password == "1234":
+    if username in users and users[username] == password:
         show_main_frame()
     else:
         messagebox.showerror("Erro de Login", "Nome de usuário ou senha incorretos.")
@@ -164,7 +183,11 @@ def register():
     password = entry_register_pass.get()
     confirm_password = entry_register_confirm.get()
 
-    if password == confirm_password:
+    if username in users:
+        messagebox.showerror("Erro de Registo", "O nome de usuário já existe.")
+    elif password == confirm_password:
+        save_user(username, password)
+        users[username] = password
         messagebox.showinfo("Registo", "Registo concluído com sucesso!")
         show_login_frame()
     else:
@@ -190,6 +213,9 @@ app.grid_columnconfigure(0, weight=1)  # Coluna 0: Frames principais
 
 # Lista para armazenar os jogos
 games = load_games()
+
+# Dicionário para armazenar os utilizadores
+users = load_users()
 
 # Frame de Login
 login_frame = ctk.CTkFrame(app)
@@ -288,4 +314,19 @@ label_game_name.grid(row=0, column=0, padx=10, pady=10)
 entry_game_name = ctk.CTkEntry(entry_frame)
 entry_game_name.grid(row=0, column=1, padx=10, pady=10)
 
-label_game_info = ctk.CTkLabel(entry_frame,
+label_game_info = ctk.CTkLabel(entry_frame, text="Informações do Jogo:")
+label_game_info.grid(row=1, column=0, padx=10, pady=10)
+entry_game_info = ctk.CTkEntry(entry_frame)
+entry_game_info.grid(row=1, column=1, padx=10, pady=10)
+
+btn_save_game = ctk.CTkButton(add_game_frame, text="Adicionar Jogo", command=add_game)
+btn_save_game.pack(pady=10)
+
+btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
+btn_back_to_main.pack(pady=10)
+
+# Inicializar o primeiro frame
+show_login_frame()
+
+# Iniciar o loop principal
+app.mainloop()
