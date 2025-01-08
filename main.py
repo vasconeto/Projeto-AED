@@ -1,50 +1,42 @@
 import customtkinter as ctk
 from tkinter import Listbox, Toplevel, messagebox
-
-# Caminhos para os ficheiros
-GAMES_FILE = "games.txt"
-USERS_FILE = "users.txt"
+import os
 
 # Configurar o tema e a aparência
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("dark-blue")
 
-# Funções para manipular ficheiros de jogos
+# Diretório onde os ficheiros dos utilizadores serão armazenados
+USER_FILES_DIR = "user_files"
+os.makedirs(USER_FILES_DIR, exist_ok=True)
+
+# Variável global para armazenar o utilizador atual
+current_user = None
+
+def get_user_file():
+    """Retorna o caminho do ficheiro do utilizador atual."""
+    if current_user:
+        return os.path.join(USER_FILES_DIR, f"{current_user}_games.txt")
+    return None
+
 def load_games():
-    """Carrega os jogos do ficheiro para a lista."""
+    """Carrega os jogos do ficheiro do utilizador atual."""
     games = []
-    try:
-        with open(GAMES_FILE, "r") as file:
+    user_file = get_user_file()
+    if user_file and os.path.exists(user_file):
+        with open(user_file, "r") as file:
             for line in file:
                 name, info = line.strip().split("|")
                 games.append({"name": name, "info": info})
-    except FileNotFoundError:
-        pass
     return games
 
 def save_games(games):
-    """Guarda os jogos no ficheiro."""
-    with open(GAMES_FILE, "w") as file:
-        for game in games:
-            file.write(f"{game['name']}|{game['info']}\n")
-
-# Funções para manipular ficheiros de utilizadores
-def load_users():
-    """Carrega os utilizadores do ficheiro."""
-    users = {}
-    try:
-        with open(USERS_FILE, "r") as file:
-            for line in file:
-                username, password = line.strip().split("|")
-                users[username] = password
-    except FileNotFoundError:
-        pass
-    return users
-
-def save_user(username, password):
-    """Guarda um novo utilizador no ficheiro."""
-    with open(USERS_FILE, "a") as file:
-        file.write(f"{username}|{password}\n")
+    """Guarda os jogos no ficheiro do utilizador atual."""
+    user_file = get_user_file()
+    if user_file:
+        with open(user_file, "w") as file:
+            for game in games:
+                file.write(f"{game['name']}|{game['info']}\n")
 
 # Funções de navegação
 def show_main_frame():
@@ -60,7 +52,6 @@ def show_login_frame():
 def show_register_frame():
     register_frame.tkraise()
 
-# Função para adicionar um jogo
 def add_game():
     game_name = entry_game_name.get()
     game_info = entry_game_info.get()
@@ -68,12 +59,10 @@ def add_game():
         new_game = {"name": game_name, "info": game_info}
         games.append(new_game)
         listbox_games.insert(ctk.END, game_name)
-        listbox_games_add.insert(ctk.END, game_name)
         save_games(games)
         entry_game_name.delete(0, ctk.END)
         entry_game_info.delete(0, ctk.END)
 
-# Função para exibir informações de um jogo selecionado
 def show_game_info(event):
     clear_game_info()
     selected_index = listbox_games.curselection()
@@ -83,13 +72,11 @@ def show_game_info(event):
         btn_edit_game.pack(pady=10)
         btn_remove_game.pack(pady=10)
 
-# Função para limpar informações de jogos
 def clear_game_info():
     info_label.configure(text="Informações do Jogo: Selecione um jogo para ver os detalhes.")
     btn_edit_game.pack_forget()
     btn_remove_game.pack_forget()
 
-# Função para editar um jogo
 def edit_game():
     selected_index = listbox_games.curselection()
     if selected_index:
@@ -119,79 +106,63 @@ def edit_game():
                 save_games(games)
                 listbox_games.delete(selected_index[0])
                 listbox_games.insert(selected_index[0], new_name)
-                listbox_games_add.delete(selected_index[0])
-                listbox_games_add.insert(selected_index[0], new_name)
                 edit_window.destroy()
         
         save_button = ctk.CTkButton(edit_window, text="Salvar", command=save_edit)
         save_button.pack(pady=20)
 
-# Função para remover um jogo
 def remove_game():
     selected_index = listbox_games.curselection()
     if selected_index:
         games.pop(selected_index[0])
         save_games(games)
         listbox_games.delete(selected_index[0])
-        listbox_games_add.delete(selected_index[0])
         clear_game_info()
 
-# Função para abrir o popup de pesquisa
-def open_search_popup():
-    search_window = Toplevel(app)
-    search_window.title("Pesquisar Jogos")
-    search_window.geometry("400x300")
-
-    search_label = ctk.CTkLabel(search_window, text="Digite o nome do jogo:")
-    search_label.pack(pady=10)
-
-    search_entry = ctk.CTkEntry(search_window)
-    search_entry.pack(pady=10)
-
-    def search_games():
-        search_query = search_entry.get().lower()
-        listbox_games.delete(0, ctk.END)  # Limpar a lista principal
-        found_games = [game for game in games if search_query in game["name"].lower()]
-        
-        if found_games:
-            for game in found_games:
-                listbox_games.insert(ctk.END, game["name"])
-        else:
-            messagebox.showinfo("Pesquisa", "Nenhum jogo encontrado com esse nome.")
-            # Repopular a lista com todos os jogos, caso não haja resultados
-            for game in games:
-                listbox_games.insert(ctk.END, game["name"])
-        
-        search_window.destroy()
-
-    search_button = ctk.CTkButton(search_window, text="Pesquisar", command=search_games)
-    search_button.pack(pady=10)
-
-# Sistema de Login
 def login():
+    global current_user, games
+
     username = entry_login_user.get()
     password = entry_login_pass.get()
 
-    if username in users and users[username] == password:
-        show_main_frame()
-    else:
-        messagebox.showerror("Erro de Login", "Nome de usuário ou senha incorretos.")
+    user_file = os.path.join(USER_FILES_DIR, f"{username}_data.txt")
 
-# Sistema de Registo
+    if os.path.exists(user_file):
+        with open(user_file, "r") as file:
+            stored_username, stored_password = file.read().strip().split("|")
+            if username == stored_username and password == stored_password:
+                current_user = username
+                games = load_games()
+                listbox_games.delete(0, ctk.END)
+                for game in games:
+                    listbox_games.insert(ctk.END, game["name"])
+                show_main_frame()
+                return
+
+    messagebox.showerror("Erro de Login", "Nome de usuário ou senha incorretos.")
+
 def register():
     username = entry_register_user.get()
     password = entry_register_pass.get()
     confirm_password = entry_register_confirm.get()
 
-    if username in users:
-        messagebox.showerror("Erro de Registo", "O nome de usuário já existe.")
-    elif password == confirm_password:
-        save_user(username, password)
-        users[username] = password
-        messagebox.showinfo("Registo", "Registo concluído com sucesso!")
-        show_login_frame()
-    else:
+    if password != confirm_password:
         messagebox.showerror("Erro de Registo", "As senhas não coincidem.")
+        return
+
+    user_file = os.path.join(USER_FILES_DIR, f"{username}_data.txt")
+
+    if os.path.exists(user_file):
+        messagebox.showerror("Erro de Registo", "Usuário já existe.")
+        return
+
+    with open(user_file, "w") as file:
+        file.write(f"{username}|{password}")
+
+    open(os.path.join(USER_FILES_DIR, f"{username}_games.txt"), "w").close()  # Criar ficheiro de jogos vazio
+
+    messagebox.showinfo("Registo", "Registo concluído com sucesso!")
+    show_login_frame()
 
 # Inicializar a aplicação
 app = ctk.CTk()
@@ -212,10 +183,7 @@ app.grid_rowconfigure(1, weight=1)  # Linha 1: Frames principais
 app.grid_columnconfigure(0, weight=1)  # Coluna 0: Frames principais
 
 # Lista para armazenar os jogos
-games = load_games()
-
-# Dicionário para armazenar os utilizadores
-users = load_users()
+games = []
 
 # Frame de Login
 login_frame = ctk.CTkFrame(app)
@@ -272,9 +240,6 @@ btn_main.pack(side="left", padx=10, pady=10)
 btn_add_game = ctk.CTkButton(menu_bar, text="Add Game", width=100, command=show_add_game_frame)
 btn_add_game.pack(side="left", padx=10, pady=10)
 
-btn_search_game = ctk.CTkButton(menu_bar, text="Search", width=100, command=open_search_popup)
-btn_search_game.pack(side="right", padx=10, pady=10)
-
 # Frame principal
 main_frame = ctk.CTkFrame(app)
 main_frame.grid(row=1, column=0, sticky="nsew")
@@ -298,6 +263,7 @@ info_label.pack(pady=10, padx=20)
 
 btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
 btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=remove_game)
+
 
 # Frame para adicionar jogos
 add_game_frame = ctk.CTkFrame(app)
