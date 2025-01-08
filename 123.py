@@ -8,7 +8,6 @@ GAMES_FILE = "games.txt"
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("dark-blue")
 
-
 # Funções para manipular ficheiros
 def load_games():
     """Carrega os jogos do ficheiro para a lista."""
@@ -16,8 +15,10 @@ def load_games():
     try:
         with open(GAMES_FILE, "r") as file:
             for line in file:
-                name, info = line.strip().split("|")
-                games.append({"name": name, "info": info})
+                parts = line.strip().split("|")
+                name, info = parts[0], parts[1]
+                favorite = len(parts) > 2 and parts[2] == "1"  # Marcação de favorito
+                games.append({"name": name, "info": info, "favorite": favorite})
     except FileNotFoundError:
         pass
     return games
@@ -26,7 +27,8 @@ def save_games(games):
     """Guarda os jogos no ficheiro."""
     with open(GAMES_FILE, "w") as file:
         for game in games:
-            file.write(f"{game['name']}|{game['info']}\n")
+            favorite = "1" if game.get("favorite", False) else "0"
+            file.write(f"{game['name']}|{game['info']}|{favorite}\n")
 
 # Funções de navegação
 def show_main_frame():
@@ -36,15 +38,21 @@ def show_main_frame():
 def show_add_game_frame():
     add_game_frame.tkraise()
 
+def show_favorites_frame():
+    favorites_frame.tkraise()
+    listbox_favorites.delete(0, ctk.END)
+    for game in games:
+        if game.get("favorite", False):
+            listbox_favorites.insert(ctk.END, game["name"])
+
 # Função para adicionar um jogo
 def add_game():
     game_name = entry_game_name.get()
     game_info = entry_game_info.get()
     if game_name and game_info:
-        new_game = {"name": game_name, "info": game_info}
+        new_game = {"name": game_name, "info": game_info, "favorite": False}
         games.append(new_game)
         listbox_games.insert(ctk.END, game_name)
-        listbox_games_add.insert(ctk.END, game_name)
         save_games(games)
         entry_game_name.delete(0, ctk.END)
         entry_game_info.delete(0, ctk.END)
@@ -58,12 +66,29 @@ def show_game_info(event):
         info_label.configure(text=f"Informações do Jogo: {selected_game['info']}")
         btn_edit_game.pack(pady=10)
         btn_remove_game.pack(pady=10)
+        star_button.pack(pady=10)
+        star_button.configure(text="★" if selected_game.get("favorite", False) else "☆")
 
 # Função para limpar informações de jogos
 def clear_game_info():
     info_label.configure(text="Informações do Jogo: Selecione um jogo para ver os detalhes.")
     btn_edit_game.pack_forget()
     btn_remove_game.pack_forget()
+    star_button.pack_forget()
+
+# Função para alternar favoritos com o botão estrela
+def toggle_favorite_star():
+    selected_index = listbox_games.curselection()
+    if selected_index:
+        game = games[selected_index[0]]
+        game["favorite"] = not game.get("favorite", False)  # Alterna o estado de favorito
+        save_games(games)
+        # Atualiza o ícone da estrela
+        star_button.configure(text="★" if game["favorite"] else "☆")
+        messagebox.showinfo(
+            "Favoritos", 
+            f"O jogo '{game['name']}' foi {'adicionado aos' if game['favorite'] else 'removido dos'} favoritos."
+        )
 
 # Função para editar um jogo
 def edit_game():
@@ -91,12 +116,10 @@ def edit_game():
             new_name = entry_name.get()
             new_info = entry_info.get()
             if new_name and new_info:
-                games[selected_index[0]] = {"name": new_name, "info": new_info}
+                games[selected_index[0]] = {"name": new_name, "info": new_info, "favorite": selected_game.get("favorite", False)}
                 save_games(games)
                 listbox_games.delete(selected_index[0])
                 listbox_games.insert(selected_index[0], new_name)
-                listbox_games_add.delete(selected_index[0])
-                listbox_games_add.insert(selected_index[0], new_name)
                 edit_window.destroy()
         
         save_button = ctk.CTkButton(edit_window, text="Salvar", command=save_edit)
@@ -109,63 +132,7 @@ def remove_game():
         games.pop(selected_index[0])
         save_games(games)
         listbox_games.delete(selected_index[0])
-        listbox_games_add.delete(selected_index[0])
         clear_game_info()
-
-# Função para abrir o popup de pesquisa
-def open_search_popup():
-    search_window = Toplevel(app)
-    search_window.title("Pesquisar Jogos")
-    search_window.geometry("400x300")
-
-    search_label = ctk.CTkLabel(search_window, text="Digite o nome do jogo:")
-    search_label.pack(pady=10)
-
-    search_entry = ctk.CTkEntry(search_window)
-    search_entry.pack(pady=10)
-
-    def search_games():
-        search_query = search_entry.get().lower()
-        listbox_games.delete(0, ctk.END)  # Limpar a lista principal
-        found_games = [game for game in games if search_query in game["name"].lower()]
-        
-        if found_games:
-            for game in found_games:
-                listbox_games.insert(ctk.END, game["name"])
-        else:
-            messagebox.showinfo("Pesquisa", "Nenhum jogo encontrado com esse nome.")
-            # Repopular a lista com todos os jogos, caso não haja resultados
-            for game in games:
-                listbox_games.insert(ctk.END, game["name"])
-        
-        search_window.destroy()
-
-    search_button = ctk.CTkButton(search_window, text="Pesquisar", command=search_games)
-    search_button.pack(pady=10)
-
-# def login():
-#     def handleLogin(): 
-
-#         username = ""
-#         password = ""
-
-#         if entryUser.get() == username and entryPass.get() == password: 
-#             customtkinter.showinfo(title="Login Successful",message="You have logged in Successfully") 
-#         elif entryUser.get() == username and entryPass.get() != password: 
-#             CTkMessagebox.showwarning(title='Wrong password',message='Please check your password') 
-#         elif entryUser.get() != username and entryPass.get() == password: 
-#             CTkMessagebox.showwarning(title='Wrong username',message='Please check your username') 
-#         else: 
-#             CTkMessagebox.showerror(title="Login Failed",message="Invalid Username and password") 
-
-# def register():
-#     def handleRegister(): 
-
-#         username = entryUser.get()
-#         password = entryPass.get()
-#         passwordVerification = passVerification.get()
-
-#         # Verificaçao da password
 
 # Inicializar a aplicação
 app = ctk.CTk()
@@ -182,8 +149,8 @@ app.geometry(f"{appwidth}x{appheight}+{int(x)}+{int(y)}")
 app.resizable(True, True)
 
 # Configurar o grid principal para permitir redimensionamento
-app.grid_rowconfigure(1, weight=1)  # Linha 1: Frames principais
-app.grid_columnconfigure(0, weight=1)  # Coluna 0: Frames principais
+app.grid_rowconfigure(1, weight=1)
+app.grid_columnconfigure(0, weight=1)
 
 # Lista para armazenar os jogos
 games = load_games()
@@ -198,8 +165,8 @@ btn_main.pack(side="left", padx=10, pady=10)
 btn_add_game = ctk.CTkButton(menu_bar, text="Add Game", width=100, command=show_add_game_frame)
 btn_add_game.pack(side="left", padx=10, pady=10)
 
-btn_search_game = ctk.CTkButton(menu_bar, text="Search", width=100, command=open_search_popup)
-btn_search_game.pack(side="right", padx=10, pady=10)
+btn_favorites = ctk.CTkButton(menu_bar, text="Favoritos", width=100, command=show_favorites_frame)
+btn_favorites.pack(side="left", padx=10, pady=10)
 
 # Frame principal
 main_frame = ctk.CTkFrame(app)
@@ -225,34 +192,37 @@ info_label.pack(pady=10, padx=20)
 btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
 btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=remove_game)
 
-# Frame para adicionar jogos
+star_button = ctk.CTkButton(
+    main_info_frame, 
+    text="☆", 
+    font=("Arial", 24), 
+    command=toggle_favorite_star
+)
+
+# Frame de adicionar jogo
 add_game_frame = ctk.CTkFrame(app)
 add_game_frame.grid(row=1, column=0, sticky="nsew")
-
-add_game_frame.grid_rowconfigure(0, weight=1)
 add_game_frame.grid_columnconfigure(0, weight=1)
 
-entry_frame = ctk.CTkFrame(add_game_frame)
-entry_frame.pack(pady=20, padx=20, fill="x")
+label_add_name = ctk.CTkLabel(add_game_frame, text="Nome do Jogo:")
+label_add_name.pack(pady=10)
+entry_game_name = ctk.CTkEntry(add_game_frame)
+entry_game_name.pack(pady=10)
 
-label_game_name = ctk.CTkLabel(entry_frame, text="Nome do Jogo:")
-label_game_name.grid(row=0, column=0, padx=10, pady=10)
-entry_game_name = ctk.CTkEntry(entry_frame)
-entry_game_name.grid(row=0, column=1, padx=10, pady=10)
+label_add_info = ctk.CTkLabel(add_game_frame, text="Informações do Jogo:")
+label_add_info.pack(pady=10)
+entry_game_info = ctk.CTkEntry(add_game_frame)
+entry_game_info.pack(pady=10)
 
-label_game_info = ctk.CTkLabel(entry_frame, text="Informações do Jogo:")
-label_game_info.grid(row=1, column=0, padx=10, pady=10)
-entry_game_info = ctk.CTkEntry(entry_frame)
-entry_game_info.grid(row=1, column=1, padx=10, pady=10)
+btn_save_game = ctk.CTkButton(add_game_frame, text="Adicionar Jogo", command=add_game)
+btn_save_game.pack(pady=20)
 
-btn_add_game = ctk.CTkButton(entry_frame, text="Adicionar Jogo", command=add_game)
-btn_add_game.grid(row=2, column=0, columnspan=2, pady=10)
+# Frame de favoritos
+favorites_frame = ctk.CTkFrame(app)
+favorites_frame.grid(row=1, column=0, sticky="nsew")
 
-listbox_frame_add = ctk.CTkFrame(add_game_frame)
-listbox_frame_add.pack(fill="both", expand=True, padx=10, pady=10)
-
-listbox_games_add = Listbox(listbox_frame_add)
-listbox_games_add.pack(fill="both", expand=True)
+listbox_favorites = Listbox(favorites_frame)
+listbox_favorites.pack(fill="both", expand=True)
 
 # Mostrar o frame principal por padrão
 show_main_frame()
@@ -260,50 +230,5 @@ show_main_frame()
 # Preencher listboxes com jogos
 for game in games:
     listbox_games.insert(ctk.END, game["name"])
-    listbox_games_add.insert(ctk.END, game["name"])
 
 app.mainloop()
-
-
-
-Frame
-frame = customtkinter.CTkFrame(master=app) 
-frame.pack(pady=20,padx=20,fill='both',expand=True) 
-
-Entry
-entryUser= customtkinter.CTkEntry(master=frame, placeholder_text="Username") 
-entryUser.pack(pady=12,padx=10) 
-
-entryPass= customtkinter.CTkEntry(master=frame, placeholder_text="Password", show="*") 
-entryPass.pack(pady=12,padx=10) 
-
-Button
-buttonLogin = customtkinter.CTkButton(master=frame,text='Login', command=login) 
-buttonLogin.pack(pady=12,padx=10) 
-
-CheckBox
-checkboxRemember = customtkinter.CTkCheckBox(master=frame, text='Remember Me') 
-checkboxRemember.pack(pady=12,padx=10) 
-
-Frame
-frame = customtkinter.CTkFrame(master=app) 
-frame.pack(pady=20,padx=20,fill='both',expand=True) 
-
-Entry
-entryUser= customtkinter.CTkEntry(master=frame, placeholder_text="Username") 
-entryUser.pack(pady=12,padx=10) 
-
-entryPass= customtkinter.CTkEntry(master=frame, placeholder_text="Password", show="") 
-entryPass.pack(pady=12,padx=10) 
-
-passVerification= customtkinter.CTkEntry(master=frame, placeholder_text="Repeat Password", show="") 
-passVerification.pack(pady=12,padx=10) 
-
-Button
-buttonLogin = customtkinter.CTkButton(master=frame,text='Register', command=register) 
-buttonLogin.pack(pady=12,padx=10) 
-
-CheckBox
-checkboxRemember = customtkinter.CTkCheckBox(master=frame, text='Remember Me') 
-checkboxRemember.pack(pady=12,padx=10) 
-
