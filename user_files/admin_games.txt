@@ -1,3 +1,2 @@
-Borderlands 2|Looter Shooter
-Fortnite|Battle Royal
-fifa|123
+1|2|Ação
+borderlands 2|123|Ação

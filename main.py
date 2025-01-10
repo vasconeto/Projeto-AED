@@ -26,8 +26,8 @@ def load_games():
     if user_file and os.path.exists(user_file):
         with open(user_file, "r") as file:
             for line in file:
-                name, info = line.strip().split("|")
-                games.append({"name": name, "info": info})
+                name, info, category = line.strip().split("|")
+                games.append({"name": name, "info": info, "category": category})
     return games
 
 def save_games(games):
@@ -36,7 +36,7 @@ def save_games(games):
     if user_file:
         with open(user_file, "w") as file:
             for game in games:
-                file.write(f"{game['name']}|{game['info']}\n")
+                file.write(f"{game['name']}|{game['info']}|{game['category']}\n")
 
 # Funções de navegação
 def show_main_frame():
@@ -55,13 +55,15 @@ def show_register_frame():
 def add_game():
     game_name = entry_game_name.get()
     game_info = entry_game_info.get()
-    if game_name and game_info:
-        new_game = {"name": game_name, "info": game_info}
+    game_category = combobox_game_info.get()
+    if game_name and game_info and game_category:
+        new_game = {"name": game_name, "info": game_info, "category": game_category}
         games.append(new_game)
         listbox_games.insert(ctk.END, game_name)
         save_games(games)
         entry_game_name.delete(0, ctk.END)
         entry_game_info.delete(0, ctk.END)
+        combobox_game_info.set("")  # Limpar a seleção da categoria
 
 def show_game_info(event):
     clear_game_info()
@@ -127,6 +129,27 @@ def search_games():
             listbox_games.insert(ctk.END, game["name"])
     if not listbox_games.size():
         listbox_games.insert(ctk.END, "Nenhum jogo encontrado.")
+
+# Função para exibir/ocultar menu de filtros
+def toggle_filter_menu():
+    if filter_menu.winfo_ismapped():
+        filter_menu.place_forget()
+    else:
+        filter_menu.place(x=search_button.winfo_rootx(), y=search_button.winfo_rooty() + 30)
+
+# Função para aplicar filtros
+def apply_filters():
+    listbox_games.delete(0, ctk.END)
+    active_filters = [chk_filter1.cget("text") if var_filter1.get() else None,
+                      chk_filter2.cget("text") if var_filter2.get() else None,
+                      chk_filter3.cget("text") if var_filter3.get() else None]
+    active_filters = [f for f in active_filters if f]
+
+    for game in games:
+        if not active_filters or game["category"] in active_filters:
+            listbox_games.insert(ctk.END, game["name"])
+
+
 
 def login():
     global current_user, games
@@ -338,13 +361,18 @@ chk_filter2.pack(pady=5)
 chk_filter3 = ctk.CTkCheckBox(filter_menu, text="Filter 3", variable=var_filter3)
 chk_filter3.pack(pady=5)
 
-btn_apply_filters = ctk.CTkButton(filter_menu, text="Apply Filters",) #command=apply_filters)
+# Substitua os valores dos filtros por categorias reais
+chk_filter1.configure(text="Ação")
+chk_filter2.configure(text="RPG")
+chk_filter3.configure(text="Aventura")
+
+btn_apply_filters = ctk.CTkButton(filter_menu, text="Apply Filters",command=apply_filters)
 btn_apply_filters.pack(pady=10)
 
 # Create the filter button
 btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=lambda: None)
 btn_filter.pack(side="left", padx=10, pady=10)
-btn_filter.bind("<Enter>", )#show_filter_menu )
+btn_filter.bind("<Enter>", toggle_filter_menu)
 
 # Adjust the filter button position
 btn_filter.pack(side="left", padx=5)
