@@ -305,6 +305,18 @@ label_game_info.grid(row=1, column=0, padx=10, pady=10)
 entry_game_info = ctk.CTkEntry(entry_frame)
 entry_game_info.grid(row=1, column=1, padx=10, pady=10)
 
+label_game_category = ctk.CTkLabel(entry_frame, text="Categoria do Jogo:")
+label_game_category.grid(row=2, column=0, padx=10, pady=10)
+
+# Combobox com categorias de jogos
+game_categories = ["Ação", "Aventura", "RPG", "Estratégia", "Simulação",
+                    "Desporto", "Puzzle", "Battle Royale", "Indie", "Moba",
+                      "Corrida", "Plataforma", "Sandbox", "Survival", "Horror",
+                        "FPS", "MMORPG", "Rogue-like", "Metroidvania", "Stealth",
+                          "Terror", "Open World"]
+combobox_game_info = ctk.CTkComboBox(entry_frame, values=game_categories)
+combobox_game_info.grid(row=2, column=1, padx=10, pady=10)
+
 btn_save_game = ctk.CTkButton(add_game_frame, text="Adicionar Jogo", command=add_game)
 btn_save_game.pack(pady=10)
 
