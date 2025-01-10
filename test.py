@@ -2,25 +2,25 @@ import customtkinter as ctk
 from tkinter import Listbox, Toplevel, messagebox
 import os
 
-# Configurar o tema e a aparência
+# Configure theme and appearance
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("dark-blue")
 
-# Diretório onde os ficheiros dos utilizadores serão armazenados
+# Directory where user files will be stored
 USER_FILES_DIR = "user_files"
 os.makedirs(USER_FILES_DIR, exist_ok=True)
 
-# Variável global para armazenar o utilizador atual
+# Global variable to store the current user
 current_user = None
 
 def get_user_file():
-    """Retorna o caminho do ficheiro do utilizador atual."""
+    """Returns the path to the current user's file."""
     if current_user:
         return os.path.join(USER_FILES_DIR, f"{current_user}_games.txt")
     return None
 
 def load_games():
-    """Carrega os jogos do ficheiro do utilizador atual."""
+    """Loads games from the current user's file."""
     games = []
     user_file = get_user_file()
     if user_file and os.path.exists(user_file):
@@ -30,13 +30,77 @@ def load_games():
                 games.append({"name": name, "info": info})
     return games
 
-def save_games(games):
-    """Guarda os jogos no ficheiro do utilizador atual."""
+def save_games():
+    """Saves games to the current user's file."""
     user_file = get_user_file()
     if user_file:
         with open(user_file, "w") as file:
             for game in games:
                 file.write(f"{game['name']}|{game['info']}\n")
+
+def add_game():
+    """Adds a new game to the list and saves it."""
+    game_name = entry_game_name.get()
+    game_info = entry_game_info.get()
+    games.append({"name": game_name, "info": game_info})
+    listbox_games.insert(ctk.END, game_name)
+    entry_game_name.delete(0, ctk.END)
+    entry_game_info.delete(0, ctk.END)
+    save_games()
+
+def show_game_info(event):
+    """Displays the information of the selected game."""
+    selected_index = listbox_games.curselection()[0]
+    selected_game = games[selected_index]
+    label_game_info.configure(text=f"Game Info: {selected_game['info']}")
+
+def search_games(query):
+    """Searches for games that match the query."""
+    listbox_games.delete(0, ctk.END)
+    for game in games:
+        if query in game["name"].lower():
+            listbox_games.insert(ctk.END, game["name"])
+    if not listbox_games.size():
+        listbox_games.insert(ctk.END, "No games found.")
+
+def login():
+    """Handles user login."""
+    global current_user, games
+
+    username = entry_login_user.get()
+    password = entry_login_pass.get()
+
+    user_file = os.path.join(USER_FILES_DIR, f"{username}_data.txt")
+
+    if os.path.exists(user_file):
+        with open(user_file, "r") as file:
+            stored_username, stored_password = file.read().strip().split("|")
+            if username == stored_username and password == stored_password:
+                current_user = username
+                games = load_games()
+                listbox_games.delete(0, ctk.END)
+                for game in games:
+                    listbox_games.insert(ctk.END, game["name"])
+                show_main_frame()
+                return
+
+    messagebox.showerror("Login Error", "Incorrect username or password.")
+
+def show_filter_menu(event):
+    """Shows the filter menu when hovering over the filter button."""
+    filter_menu.place(x=event.x_root, y=event.y_root)
+
+def apply_filters():
+    """Applies the selected filters to the game list."""
+    listbox_games.delete(0, ctk.END)
+    for game in games:
+        if (var_filter1.get() and "filter1" in game["info"]) or \
+           (var_filter2.get() and "filter2" in game["info"]) or \
+           (var_filter3.get() and "filter3" in game["info"]):
+            listbox_games.insert(ctk.END, game["name"])
+    if not listbox_games.size():
+        listbox_games.insert(ctk.END, "No games found.")
+    filter_menu.place_forget()
 
 # Funções de navegação
 def show_main_frame():
@@ -51,26 +115,6 @@ def show_login_frame():
 
 def show_register_frame():
     register_frame.tkraise()
-
-def add_game():
-    game_name = entry_game_name.get()
-    game_info = entry_game_info.get()
-    if game_name and game_info:
-        new_game = {"name": game_name, "info": game_info}
-        games.append(new_game)
-        listbox_games.insert(ctk.END, game_name)
-        save_games(games)
-        entry_game_name.delete(0, ctk.END)
-        entry_game_info.delete(0, ctk.END)
-
-def show_game_info(event):
-    clear_game_info()
-    selected_index = listbox_games.curselection()
-    if selected_index:
-        selected_game = games[selected_index[0]]
-        info_label.configure(text=f"Informações do Jogo: {selected_game['info']}")
-        btn_edit_game.pack(pady=10)
-        btn_remove_game.pack(pady=10)
 
 def clear_game_info():
     info_label.configure(text="Informações do Jogo: Selecione um jogo para ver os detalhes.")
@@ -103,7 +147,7 @@ def edit_game():
             new_info = entry_info.get()
             if new_name and new_info:
                 games[selected_index[0]] = {"name": new_name, "info": new_info}
-                save_games(games)
+                save_games()
                 listbox_games.delete(selected_index[0])
                 listbox_games.insert(selected_index[0], new_name)
                 edit_window.destroy()
@@ -115,40 +159,9 @@ def remove_game():
     selected_index = listbox_games.curselection()
     if selected_index:
         games.pop(selected_index[0])
-        save_games(games)
+        save_games()
         listbox_games.delete(selected_index[0])
         clear_game_info()
-
-def search_games():
-    query = search_entry.get().lower()
-    listbox_games.delete(0, ctk.END)
-    for game in games:
-        if query in game["name"].lower():
-            listbox_games.insert(ctk.END, game["name"])
-    if not listbox_games.size():
-        listbox_games.insert(ctk.END, "Nenhum jogo encontrado.")
-
-def login():
-    global current_user, games
-
-    username = entry_login_user.get()
-    password = entry_login_pass.get()
-
-    user_file = os.path.join(USER_FILES_DIR, f"{username}_data.txt")
-
-    if os.path.exists(user_file):
-        with open(user_file, "r") as file:
-            stored_username, stored_password = file.read().strip().split("|")
-            if username == stored_username and password == stored_password:
-                current_user = username
-                games = load_games()
-                listbox_games.delete(0, ctk.END)
-                for game in games:
-                    listbox_games.insert(ctk.END, game["name"])
-                show_main_frame()
-                return
-
-    messagebox.showerror("Erro de Login", "Nome de usuário ou senha incorretos.")
 
 def register():
     username = entry_register_user.get()
@@ -173,11 +186,11 @@ def register():
     messagebox.showinfo("Registo", "Registo concluído com sucesso!")
     show_login_frame()
 
-# Inicializar a aplicação
+# Initialize the application
 app = ctk.CTk()
 app.title("Game Managing App")
 
-# Configurar tamanho e posição da janela
+# Configure the size and position of the window
 appwidth = 1280
 appheight = 720
 screenWidth = app.winfo_screenwidth()
@@ -249,6 +262,25 @@ btn_main.pack(side="left", padx=10, pady=10)
 btn_add_game = ctk.CTkButton(menu_bar, text="Add Game", width=100, command=show_add_game_frame)
 btn_add_game.pack(side="left", padx=10, pady=10)
 
+
+# Create the filter menu
+filter_menu = ctk.CTkFrame(app, width=200, height=150)
+filter_menu.place_forget()
+
+var_filter1 = ctk.BooleanVar()
+var_filter2 = ctk.BooleanVar()
+var_filter3 = ctk.BooleanVar()
+
+chk_filter1 = ctk.CTkCheckBox(filter_menu, text="Filter 1", variable=var_filter1)
+chk_filter1.pack(pady=5)
+chk_filter2 = ctk.CTkCheckBox(filter_menu, text="Filter 2", variable=var_filter2)
+chk_filter2.pack(pady=5)
+chk_filter3 = ctk.CTkCheckBox(filter_menu, text="Filter 3", variable=var_filter3)
+chk_filter3.pack(pady=5)
+
+btn_apply_filters = ctk.CTkButton(filter_menu, text="Apply Filters", command=apply_filters)
+btn_apply_filters.pack(pady=10)
+
 # Frame principal
 main_frame = ctk.CTkFrame(app)
 main_frame.grid(row=1, column=0, sticky="nsew")
@@ -273,8 +305,16 @@ search_label.pack(side="left", padx=5)
 search_entry = ctk.CTkEntry(search_frame)
 search_entry.pack(side="left", fill="x", expand=True, padx=5)
 
-search_button = ctk.CTkButton(search_frame, text="Procurar", command=search_games)
+search_button = ctk.CTkButton(search_frame, text="Procurar", command=lambda: search_games(search_entry.get().lower()))
 search_button.pack(side="left", padx=5)
+
+# Create the filter button
+btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=lambda: None)
+btn_filter.pack(side="left", padx=10, pady=10)
+btn_filter.bind("<Enter>", show_filter_menu)
+
+# Adjust the filter button position
+btn_filter.pack(side="left", padx=5)
 
 main_info_frame = ctk.CTkFrame(main_frame)
 main_info_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
@@ -311,34 +351,8 @@ btn_save_game.pack(pady=10)
 btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
 btn_back_to_main.pack(pady=10)
 
-#Create the filter menu
-filter_menu = ctk.CTkFrame(app, width=200, height=150)
-filter_menu.place_forget()
-
-var_filter1 = ctk.BooleanVar()
-var_filter2 = ctk.BooleanVar()
-var_filter3 = ctk.BooleanVar()
-
-chk_filter1 = ctk.CTkCheckBox(filter_menu, text="Filter 1", variable=var_filter1)
-chk_filter1.pack(pady=5)
-chk_filter2 = ctk.CTkCheckBox(filter_menu, text="Filter 2", variable=var_filter2)
-chk_filter2.pack(pady=5)
-chk_filter3 = ctk.CTkCheckBox(filter_menu, text="Filter 3", variable=var_filter3)
-chk_filter3.pack(pady=5)
-
-btn_apply_filters = ctk.CTkButton(filter_menu, text="Apply Filters",) #command=apply_filters)
-btn_apply_filters.pack(pady=10)
-
-# Create the filter button
-btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=lambda: None)
-btn_filter.pack(side="left", padx=10, pady=10)
-btn_filter.bind("<Enter>", )#show_filter_menu )
-
-# Adjust the filter button position
-btn_filter.pack(side="left", padx=5)
-
-# Inicializar o primeiro frame
+# Initialize the first frame
 show_login_frame()
 
-# Iniciar o loop principal
+# Start the main loop
 app.mainloop()
