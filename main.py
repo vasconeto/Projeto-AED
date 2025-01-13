@@ -130,25 +130,31 @@ def search_games():
     if not listbox_games.size():
         listbox_games.insert(ctk.END, "Nenhum jogo encontrado.")
 
-# Função para exibir/ocultar menu de filtros
-def toggle_filter_menu():
-    if filter_menu.winfo_ismapped():
-        filter_menu.place_forget()
-    else:
-        filter_menu.place(x=search_button.winfo_rootx(), y=search_button.winfo_rooty() + 30)
-
-# Função para aplicar filtros
 def apply_filters():
-    listbox_games.delete(0, ctk.END)
-    active_filters = [chk_filter1.cget("text") if var_filter1.get() else None,
-                      chk_filter2.cget("text") if var_filter2.get() else None,
-                      chk_filter3.cget("text") if var_filter3.get() else None]
-    active_filters = [f for f in active_filters if f]
+    filter_window = Toplevel(app)
+    filter_window.title("Filtrar Jogos")
+    filter_window.geometry("300x400")
 
-    for game in games:
-        if not active_filters or game["category"] in active_filters:
-            listbox_games.insert(ctk.END, game["name"])
+    # Obter categorias únicas
+    categories = sorted(set(game["category"] for game in games))
 
+    # Criar checkboxes dinamicamente
+    check_vars = {category: ctk.BooleanVar() for category in categories}
+
+    for category, var in check_vars.items():
+        ctk.CTkCheckBox(filter_window, text=category, variable=var).pack(anchor="w", padx=10, pady=5)
+
+    def confirm_filters():
+        selected_filters = [cat for cat, var in check_vars.items() if var.get()]
+        listbox_games.delete(0, ctk.END)
+
+        for game in games:
+            if game["category"] in selected_filters:
+                listbox_games.insert(ctk.END, game["name"])
+
+        filter_window.destroy()
+
+    ctk.CTkButton(filter_window, text="Aplicar", command=confirm_filters).pack(pady=10)
 
 
 def login():
@@ -346,33 +352,9 @@ btn_save_game.pack(pady=10)
 btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
 btn_back_to_main.pack(pady=10)
 
-#Create the filter menu
-filter_menu = ctk.CTkFrame(app, width=200, height=150)
-filter_menu.place_forget()
-
-var_filter1 = ctk.BooleanVar()
-var_filter2 = ctk.BooleanVar()
-var_filter3 = ctk.BooleanVar()
-
-chk_filter1 = ctk.CTkCheckBox(filter_menu, text="Filter 1", variable=var_filter1)
-chk_filter1.pack(pady=5)
-chk_filter2 = ctk.CTkCheckBox(filter_menu, text="Filter 2", variable=var_filter2)
-chk_filter2.pack(pady=5)
-chk_filter3 = ctk.CTkCheckBox(filter_menu, text="Filter 3", variable=var_filter3)
-chk_filter3.pack(pady=5)
-
-# Substitua os valores dos filtros por categorias reais
-chk_filter1.configure(text="Ação")
-chk_filter2.configure(text="RPG")
-chk_filter3.configure(text="Aventura")
-
-btn_apply_filters = ctk.CTkButton(filter_menu, text="Apply Filters",command=apply_filters)
-btn_apply_filters.pack(pady=10)
-
 # Create the filter button
-btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=lambda: None)
+btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=apply_filters)
 btn_filter.pack(side="left", padx=10, pady=10)
-btn_filter.bind("<Enter>", toggle_filter_menu)
 
 # Adjust the filter button position
 btn_filter.pack(side="left", padx=5)

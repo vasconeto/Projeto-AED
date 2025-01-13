@@ -1,3 +1,7 @@
+import customtkinter as ctk
+from tkinter import Listbox, Toplevel, messagebox
+import os
+
 # Configurar o tema e a aparência
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("dark-blue")
@@ -118,11 +122,16 @@ def remove_game():
 def search_games():
     query = search_entry.get().lower()
     listbox_games.delete(0, ctk.END)
+
+    found = False
     for game in games:
         if query in game["name"].lower():
             listbox_games.insert(ctk.END, game["name"])
-    if not listbox_games.size():
-        listbox_games.insert(ctk.END, "Nenhum jogo encontrado.")
+            found = True
+
+    if not found:
+        messagebox.showinfo("Resultado da Pesquisa", "Nenhum jogo encontrado.")
+
 
 def login():
     global current_user, games
