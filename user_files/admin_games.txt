@@ -1,2 +1,2 @@
-1|2|Ação
-borderlands 2|123|Ação
+metin 2|123|RPG
+2|3|Puzzle
