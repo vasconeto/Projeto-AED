@@ -10,6 +10,27 @@ ctk.set_default_color_theme("dark-blue")
 USER_FILES_DIR = "user_files"
 os.makedirs(USER_FILES_DIR, exist_ok=True)
 
+"""
+
+MUDAR NOMES DA FUNÇÃO  path_format()
+
+"""
+def path_format():
+    """Retorna o formato de declarar caminhos, dependendo do Sistema Operativo"""
+
+    #Se os SO for windows
+    if os.name=="nt":
+        pathFormat = "\\"
+    #Se for outro SO
+    else:
+        pathFormat = "/"
+
+    return pathFormat # Retorna o formato
+
+pathFormat = path_format()
+
+user_file = ""
+
 # Variável global para armazenar o utilizador atual
 current_user = None
 
@@ -26,8 +47,8 @@ def load_games():
     if user_file and os.path.exists(user_file):
         with open(user_file, "r") as file:
             for line in file:
-                name, info = line.strip().split("|")
-                games.append({"name": name, "info": info})
+                name, info, category = line.strip().split("|")
+                games.append({"name": name, "info": info, "category": category})
     return games
 
 def save_games(games):
@@ -36,7 +57,7 @@ def save_games(games):
     if user_file:
         with open(user_file, "w") as file:
             for game in games:
-                file.write(f"{game['name']}|{game['info']}\n")
+                file.write(f"{game['name']}|{game['info']}|{game['category']}\n")
 
 # Funções de navegação
 def show_main_frame():
@@ -55,13 +76,15 @@ def show_register_frame():
 def add_game():
     game_name = entry_game_name.get()
     game_info = entry_game_info.get()
-    if game_name and game_info:
-        new_game = {"name": game_name, "info": game_info}
+    game_category = combobox_game_info.get()
+    if game_name and game_info and game_category:
+        new_game = {"name": game_name, "info": game_info, "category": game_category}
         games.append(new_game)
         listbox_games.insert(ctk.END, game_name)
         save_games(games)
         entry_game_name.delete(0, ctk.END)
         entry_game_info.delete(0, ctk.END)
+        combobox_game_info.set("")  # Limpar a seleção da categoria
 
 def show_game_info(event):
     clear_game_info()
@@ -122,15 +145,37 @@ def remove_game():
 def search_games():
     query = search_entry.get().lower()
     listbox_games.delete(0, ctk.END)
-
-    found = False
     for game in games:
         if query in game["name"].lower():
             listbox_games.insert(ctk.END, game["name"])
-            found = True
+    if not listbox_games.size():
+        listbox_games.insert(ctk.END, "Nenhum jogo encontrado.")
 
-    if not found:
-        messagebox.showinfo("Resultado da Pesquisa", "Nenhum jogo encontrado.")
+def apply_filters():
+    filter_window = Toplevel(app)
+    filter_window.title("Filtrar Jogos")
+    filter_window.geometry("300x400")
+
+    # Obter categorias únicas
+    categories = sorted(set(game["category"] for game in games))
+
+    # Criar checkboxes dinamicamente
+    check_vars = {category: ctk.BooleanVar() for category in categories}
+
+    for category, var in check_vars.items():
+        ctk.CTkCheckBox(filter_window, text=category, variable=var).pack(anchor="w", padx=10, pady=5)
+
+    def confirm_filters():
+        selected_filters = [cat for cat, var in check_vars.items() if var.get()]
+        listbox_games.delete(0, ctk.END)
+
+        for game in games:
+            if game["category"] in selected_filters:
+                listbox_games.insert(ctk.END, game["name"])
+
+        filter_window.destroy()
+
+    ctk.CTkButton(filter_window, text="Aplicar", command=confirm_filters).pack(pady=10)
 
 
 def login():
@@ -163,20 +208,20 @@ def register():
     if password != confirm_password:
         messagebox.showerror("Erro de Registo", "As senhas não coincidem.")
         return
-
-    user_file = os.path.join(USER_FILES_DIR, f"{username}_data.txt")
-
+    
     if os.path.exists(user_file):
         messagebox.showerror("Erro de Registo", "Usuário já existe.")
         return
 
-    with open(user_file, "w") as file:
+    with open(user_file, "a") as file:
         file.write(f"{username}|{password}")
 
     open(os.path.join(USER_FILES_DIR, f"{username}_games.txt"), "w").close()  # Criar ficheiro de jogos vazio
 
     messagebox.showinfo("Registo", "Registo concluído com sucesso!")
     show_login_frame()
+
+
 
 # Inicializar a aplicação
 app = ctk.CTk()
@@ -244,9 +289,13 @@ btn_register.pack(pady=10)
 btn_to_login = ctk.CTkButton(register_frame, text="Voltar", command=show_login_frame)
 btn_to_login.pack(pady=10)
 
+# Frame principal
+main_frame = ctk.CTkFrame(app)
+main_frame.grid(row=1, column=0, sticky="nsew")
+
 # Barra de menu
-menu_bar = ctk.CTkFrame(app, height=50, corner_radius=0)
-menu_bar.grid(row=0, column=0, columnspan=2, sticky="nsew")
+menu_bar = ctk.CTkFrame(main_frame, corner_radius=0)
+menu_bar.pack(side="top", anchor="nw", fill="x")
 
 btn_main = ctk.CTkButton(menu_bar, text="Main", width=100, command=show_main_frame)
 btn_main.pack(side="left", padx=10, pady=10)
@@ -254,16 +303,8 @@ btn_main.pack(side="left", padx=10, pady=10)
 btn_add_game = ctk.CTkButton(menu_bar, text="Add Game", width=100, command=show_add_game_frame)
 btn_add_game.pack(side="left", padx=10, pady=10)
 
-# Frame principal
-main_frame = ctk.CTkFrame(app)
-main_frame.grid(row=1, column=0, sticky="nsew")
-
-main_frame.grid_rowconfigure(0, weight=1)
-main_frame.grid_columnconfigure(0, weight=1)
-main_frame.grid_columnconfigure(1, weight=3)
-
-main_list_frame = ctk.CTkFrame(main_frame, width=300)
-main_list_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+main_list_frame = ctk.CTkFrame(main_frame, height= 300, width=300)
+main_list_frame.pack(side="left", anchor="nw", fill="y", padx=20)
 
 listbox_games = Listbox(main_list_frame)
 listbox_games.pack(fill="both", expand=True)
@@ -282,7 +323,8 @@ search_button = ctk.CTkButton(search_frame, text="Procurar", command=search_game
 search_button.pack(side="left", padx=5)
 
 main_info_frame = ctk.CTkFrame(main_frame)
-main_info_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+# main_info_frame.grid(column=1, sticky="nsew", padx=10, pady=10)
+main_info_frame.pack(fill="both", expand=True)
 
 info_label = ctk.CTkLabel(main_info_frame, text="Informações do Jogo: Selecione um jogo para ver os detalhes.", font=("Arial", 18))
 info_label.pack(pady=10, padx=20)
@@ -328,28 +370,9 @@ btn_save_game.pack(pady=10)
 btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
 btn_back_to_main.pack(pady=10)
 
-#Create the filter menu
-filter_menu = ctk.CTkFrame(app, width=200, height=150)
-filter_menu.place_forget()
-
-var_filter1 = ctk.BooleanVar()
-var_filter2 = ctk.BooleanVar()
-var_filter3 = ctk.BooleanVar()
-
-chk_filter1 = ctk.CTkCheckBox(filter_menu, text="Filter 1", variable=var_filter1)
-chk_filter1.pack(pady=5)
-chk_filter2 = ctk.CTkCheckBox(filter_menu, text="Filter 2", variable=var_filter2)
-chk_filter2.pack(pady=5)
-chk_filter3 = ctk.CTkCheckBox(filter_menu, text="Filter 3", variable=var_filter3)
-chk_filter3.pack(pady=5)
-
-btn_apply_filters = ctk.CTkButton(filter_menu, text="Apply Filters",) #command=apply_filters)
-btn_apply_filters.pack(pady=10)
-
 # Create the filter button
-btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=lambda: None)
+btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=apply_filters)
 btn_filter.pack(side="left", padx=10, pady=10)
-btn_filter.bind("<Enter>", )#show_filter_menu )
 
 # Adjust the filter button position
 btn_filter.pack(side="left", padx=5)

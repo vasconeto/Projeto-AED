@@ -268,33 +268,22 @@ btn_register.pack(pady=10)
 btn_to_login = ctk.CTkButton(register_frame, text="Voltar", command=show_login_frame)
 btn_to_login.pack(pady=10)
 
-
 # Frame principal
 main_frame = ctk.CTkFrame(app)
 main_frame.grid(row=1, column=0, sticky="nsew")
 
-# main_frame.grid_rowconfigure(0, weight=1)
-# main_frame.grid_columnconfigure(0, weight=1)
-# main_frame.grid_columnconfigure(1, weight=3)
-
-main_list_frame = ctk.CTkFrame(main_frame, width=300)
-main_list_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-
-# Configurar layout do main_frame
-main_frame.grid_rowconfigure(0, weight=1)  # Menu bar fixo
-main_frame.grid_rowconfigure(1, weight=0)  # Lista e detalhes flexíveis
-main_frame.grid_columnconfigure(0, weight=1)
-main_frame.grid_columnconfigure(1, weight=3)
-
 # Barra de menu
-menu_bar = ctk.CTkFrame(main_frame, height=50, corner_radius=0)
-menu_bar.grid(row=0, column=0, columnspan=2, sticky="new")
+menu_bar = ctk.CTkFrame(main_frame, corner_radius=0)
+menu_bar.pack(side="top", anchor="nw", fill="x")
 
 btn_main = ctk.CTkButton(menu_bar, text="Main", width=100, command=show_main_frame)
 btn_main.pack(side="left", padx=10, pady=10)
 
 btn_add_game = ctk.CTkButton(menu_bar, text="Add Game", width=100, command=show_add_game_frame)
 btn_add_game.pack(side="left", padx=10, pady=10)
+
+main_list_frame = ctk.CTkFrame(main_frame, height= 300, width=300)
+main_list_frame.pack(side="left", anchor="nw", fill="y", padx=20)
 
 listbox_games = Listbox(main_list_frame)
 listbox_games.pack(fill="both", expand=True)
@@ -313,7 +302,8 @@ search_button = ctk.CTkButton(search_frame, text="Procurar", command=search_game
 search_button.pack(side="left", padx=5)
 
 main_info_frame = ctk.CTkFrame(main_frame)
-main_info_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+# main_info_frame.grid(column=1, sticky="nsew", padx=10, pady=10)
+main_info_frame.pack(fill="both", expand=True)
 
 info_label = ctk.CTkLabel(main_info_frame, text="Informações do Jogo: Selecione um jogo para ver os detalhes.", font=("Arial", 18))
 info_label.pack(pady=10, padx=20)
