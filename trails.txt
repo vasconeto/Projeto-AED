@@ -1,0 +1,13 @@
+Volta às origens;2025-01-3;Penafiel;19
+Vouga Trail;2025-01-08;Server do Vouga;25
+Trail dos Reis;2025-01-09;Beja;28
+Trails Rota do Crasto;2025-01-23;Viseu;23
+Trilhos de Viana;2025-02-06;Viana do Castelo;18
+Trail do Cavalo;2025-02-13;Alter do Chão;15
+Trail Marvão;2025-02-20;Portalegre;21
+Trail Ribeira de Limas;2025-02-27;Serpa;28
+Trail Bela Bela;2025-04-03;Águeda;25
+Trail do Texugo;2025-04-10;Évora;21
+Trail Rota da Capelas;2025-04-17;Marco Canaveses;17
+Trail São Mamede;2025-05-06;Portalegre;23
+Trail de Cerveira;2025-05-07;Cerveira;25
