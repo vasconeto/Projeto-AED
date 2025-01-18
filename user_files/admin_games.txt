@@ -1,0 +1,11 @@
+Minecraft|123|Aventura|
+CSGO|123|FPS|
+God of War|123|RPG|
+Fortnite|123|Battle Royale|
+Phasmophobia|123|Terror|
+Cyberpunk 2077|123|RPG|
+Diablo IV|123|RPG|
+Apex|123|Battle Royale|
+PUBG|123|Battle Royale|
+Demonologist|123|Terror|
+The Evil Within|123|Terror|
