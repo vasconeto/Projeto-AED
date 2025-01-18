@@ -50,8 +50,8 @@ def load_games():
     if user_file and os.path.exists(user_file):
         with open(user_file, "r") as file:
             for line in file:
-                name, info, category = line.strip().split("|")
-                games.append({"name": name, "info": info, "category": category})
+                name, info, category, review = line.strip().split("|")
+                games.append({"name": name, "info": info, "category": category, "review": review})
     return games
 
 def save_games(games):
@@ -60,7 +60,7 @@ def save_games(games):
     if user_file:
         with open(user_file, "w") as file:
             for game in games:
-                file.write(f"{game['name']}|{game['info']}|{game['category']}\n")
+                file.write(f"{game['name']}|{game['info']}|{game['category']}|{game['review']}\n")
 
 # Funções de navegação
 def show_main_frame():
@@ -80,13 +80,15 @@ def add_game():
     game_name = entry_game_name.get()
     game_info = entry_game_info.get()
     game_category = combobox_game_info.get()
-    if game_name and game_info and game_category:
-        new_game = {"name": game_name, "info": game_info, "category": game_category}
+    game_review = entry_game_review.get()
+    if game_name and game_info and game_category and game_review:
+        new_game = {"name": game_name, "info": game_info, "category": game_category, "review": game_review}
         games.append(new_game)
         listbox_games.insert(ctk.END, game_name)
         save_games(games)
         entry_game_name.delete(0, ctk.END)
         entry_game_info.delete(0, ctk.END)
+        entry_game_review.delete(0, ctk.END)
         combobox_game_info.set("")  # Limpar a seleção da categoria
 
 def show_game_info(event):
@@ -393,6 +395,11 @@ entry_game_info.grid(row=1, column=1, padx=10, pady=10)
 
 label_game_category = ctk.CTkLabel(entry_frame, text="Categoria do Jogo:")
 label_game_category.grid(row=2, column=0, padx=10, pady=10)
+
+label_game_review = ctk.CTkLabel(entry_frame, text="Review do Jogo:")
+label_game_review.grid(row=3, column=0, padx=10, pady=10)
+entry_game_review = ctk.CTkEntry(entry_frame)
+entry_game_review.grid(row=3, column=1, padx=10, pady=10)
 
 # Combobox com categorias de jogos
 game_categories = ["Ação", "Aventura", "RPG", "Estratégia", "Simulação",
