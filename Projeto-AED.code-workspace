@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "Projeto-AED",
+			"path": "."
+		},
+		{
+			"name": "ficheiros",
+			"path": "../../../Downloads/TESTE/ficheiros"
+		},
+		{
+			"name": "imagens",
+			"path": "../../../Downloads/TESTE/imagens"
+		}
+	],
+	"settings": {}
+}
