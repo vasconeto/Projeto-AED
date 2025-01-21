@@ -204,7 +204,7 @@ def verify_admin(username):
     return False
 
 def login():
-    global current_user, games, is_admin
+    global current_user, games, is_admin, btn_admin_dash
 
     username = entry_login_user.get()
     password = entry_login_pass.get()
@@ -219,11 +219,17 @@ def login():
             stored_username, stored_password=fields[0], fields[1]
             if username == stored_username and password == stored_password:
                 current_user = username
-                is_admin = True
+                is_admin = verify_admin(username)
                 games = load_games()
                 listbox_games.delete(0, ctk.END)
                 for game in games:
                     listbox_games.insert(ctk.END, game["name"])
+
+                # Add the admin button dynamically if the user is an admin
+                if is_admin:
+                    if btn_admin_dash is None:  # If button hasn't been created
+                        btn_admin_dash = ctk.CTkButton(menu_bar, text="Admin Dashboard", width=100)
+                        btn_admin_dash.pack(side="left", padx=10, pady=10)
                 show_main_frame()
                 return
             else:
@@ -258,6 +264,15 @@ def register():
     messagebox.showinfo("Registo", "Registo concluído com sucesso!")
     show_login_frame()
 
+def verify_admin(username):
+    with open(admin_file, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+    for line in lines:
+        if line.strip() == username:
+            return True
+        
+    return False
 
 
 # Inicializar a aplicação
@@ -280,6 +295,7 @@ app.grid_columnconfigure(0, weight=1)  # Coluna 0: Frames principais
 
 # Lista para armazenar os jogos
 games = []
+btn_admin_dash = None  # Placeholder for the admin button
 
 # Frame de Login
 login_frame = ctk.CTkFrame(app)
@@ -340,10 +356,6 @@ btn_main.pack(side="left", padx=10, pady=10)
 btn_add_game = ctk.CTkButton(menu_bar, text="Add Game", width=100, command=show_add_game_frame)
 btn_add_game.pack(side="left", padx=10, pady=10)
 
-if is_admin:
-    btn_admin_dash = ctk.CTkButton(menu_bar, text="Admin Dashboard", width=100)
-    btn_admin_dash.pack(side="left", padx=10, pady=10)
-
 main_list_frame = ctk.CTkFrame(main_frame, height= 300, width=300)
 main_list_frame.pack(side="left", anchor="nw", fill="y", padx=20)
 
@@ -373,48 +385,50 @@ info_label.pack(pady=10, padx=20)
 btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
 btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=remove_game)
 
-# Frame para adicionar jogos
-add_game_frame = ctk.CTkFrame(app)
-add_game_frame.grid(row=1, column=0, sticky="nsew")
 
-add_game_frame.grid_rowconfigure(0, weight=1)
-add_game_frame.grid_columnconfigure(0, weight=1)
+if is_admin:
+    # Frame para adicionar jogos
+    add_game_frame = ctk.CTkFrame(app)
+    add_game_frame.grid(row=1, column=0, sticky="nsew")
 
-entry_frame = ctk.CTkFrame(add_game_frame)
-entry_frame.pack(pady=20, padx=20, fill="x")
+    add_game_frame.grid_rowconfigure(0, weight=1)
+    add_game_frame.grid_columnconfigure(0, weight=1)
 
-label_game_name = ctk.CTkLabel(entry_frame, text="Nome do Jogo:")
-label_game_name.grid(row=0, column=0, padx=10, pady=10)
-entry_game_name = ctk.CTkEntry(entry_frame)
-entry_game_name.grid(row=0, column=1, padx=10, pady=10)
+    entry_frame = ctk.CTkFrame(add_game_frame)
+    entry_frame.pack(pady=20, padx=20, fill="x")
 
-label_game_info = ctk.CTkLabel(entry_frame, text="Informações do Jogo:")
-label_game_info.grid(row=1, column=0, padx=10, pady=10)
-entry_game_info = ctk.CTkEntry(entry_frame)
-entry_game_info.grid(row=1, column=1, padx=10, pady=10)
+    label_game_name = ctk.CTkLabel(entry_frame, text="Nome do Jogo:")
+    label_game_name.grid(row=0, column=0, padx=10, pady=10)
+    entry_game_name = ctk.CTkEntry(entry_frame)
+    entry_game_name.grid(row=0, column=1, padx=10, pady=10)
 
-label_game_category = ctk.CTkLabel(entry_frame, text="Categoria do Jogo:")
-label_game_category.grid(row=2, column=0, padx=10, pady=10)
+    label_game_info = ctk.CTkLabel(entry_frame, text="Informações do Jogo:")
+    label_game_info.grid(row=1, column=0, padx=10, pady=10)
+    entry_game_info = ctk.CTkEntry(entry_frame)
+    entry_game_info.grid(row=1, column=1, padx=10, pady=10)
 
-label_game_review = ctk.CTkLabel(entry_frame, text="Review do Jogo:")
-label_game_review.grid(row=3, column=0, padx=10, pady=10)
-entry_game_review = ctk.CTkEntry(entry_frame)
-entry_game_review.grid(row=3, column=1, padx=10, pady=10)
+    label_game_category = ctk.CTkLabel(entry_frame, text="Categoria do Jogo:")
+    label_game_category.grid(row=2, column=0, padx=10, pady=10)
 
-# Combobox com categorias de jogos
-game_categories = ["Ação", "Aventura", "RPG", "Estratégia", "Simulação",
-                    "Desporto", "Puzzle", "Battle Royale", "Indie", "Moba",
-                    "Corrida", "Plataforma", "Sandbox", "Survival", "Horror",
-                    "FPS", "MMORPG", "Rogue-like", "Metroidvania", "Stealth",
-                    "Terror", "Open World"]
-combobox_game_info = ctk.CTkComboBox(entry_frame, values=game_categories)
-combobox_game_info.grid(row=2, column=1, padx=10, pady=10)
+    label_game_review = ctk.CTkLabel(entry_frame, text="Review do Jogo:")
+    label_game_review.grid(row=3, column=0, padx=10, pady=10)
+    entry_game_review = ctk.CTkEntry(entry_frame)
+    entry_game_review.grid(row=3, column=1, padx=10, pady=10)
 
-btn_save_game = ctk.CTkButton(add_game_frame, text="Adicionar Jogo", command=add_game)
-btn_save_game.pack(pady=10)
+    # Combobox com categorias de jogos
+    game_categories = ["Ação", "Aventura", "RPG", "Estratégia", "Simulação",
+                        "Desporto", "Puzzle", "Battle Royale", "Indie", "Moba",
+                        "Corrida", "Plataforma", "Sandbox", "Survival", "Horror",
+                        "FPS", "MMORPG", "Rogue-like", "Metroidvania", "Stealth",
+                        "Terror", "Open World"]
+    combobox_game_info = ctk.CTkComboBox(entry_frame, values=game_categories)
+    combobox_game_info.grid(row=2, column=1, padx=10, pady=10)
 
-btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
-btn_back_to_main.pack(pady=10)
+    btn_save_game = ctk.CTkButton(add_game_frame, text="Adicionar Jogo", command=add_game)
+    btn_save_game.pack(pady=10)
+
+    btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
+    btn_back_to_main.pack(pady=10)
 
 # Create the filter button
 btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=apply_filters)

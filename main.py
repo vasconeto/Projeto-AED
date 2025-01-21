@@ -6,12 +6,27 @@ import os
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("dark-blue")
 
+# Variáveis globais
+is_admin = False
+current_user = None
+entry_game_name = None
+entry_game_info = None
+entry_game_review = None
+combobox_game_info = None
+btn_save_game = None
+
 # Diretório onde os ficheiros dos utilizadores serão armazenados
 USER_FILES_DIR = "user_files"
 os.makedirs(USER_FILES_DIR, exist_ok=True)
 
-# Variável global para armazenar o utilizador atual
-current_user = None
+def path_format():
+    """Retorna o formato de declarar caminhos, dependendo do Sistema Operativo"""
+    return "\\" if os.name == "nt" else "/"
+
+pathFormat = path_format()
+
+new_user_file = f".{pathFormat}user_files{pathFormat}users.txt"
+admin_file = f".{pathFormat}user_files{pathFormat}admin_data.txt"
 
 def get_user_file():
     """Retorna o caminho do ficheiro do utilizador atual."""
@@ -26,8 +41,8 @@ def load_games():
     if user_file and os.path.exists(user_file):
         with open(user_file, "r") as file:
             for line in file:
-                name, info, category = line.strip().split("|")
-                games.append({"name": name, "info": info, "category": category})
+                name, info, category, review = line.strip().split("|")
+                games.append({"name": name, "info": info, "category": category, "review": review})
     return games
 
 def save_games(games):
@@ -36,14 +51,60 @@ def save_games(games):
     if user_file:
         with open(user_file, "w") as file:
             for game in games:
-                file.write(f"{game['name']}|{game['info']}|{game['category']}\n")
+                file.write(f"{game['name']}|{game['info']}|{game['category']}|{game['review']}\n")
 
-# Funções de navegação
 def show_main_frame():
     main_frame.tkraise()
     clear_game_info()
 
 def show_add_game_frame():
+    global entry_game_info, entry_game_review, combobox_game_info, btn_save_game, entry_game_name
+    
+    # Limpar todos os widgets do entry_frame
+    for widget in entry_frame.winfo_children():
+        widget.destroy()
+    
+    # Limpar todos os botões do add_game_frame (exceto o entry_frame)
+    for widget in add_game_frame.winfo_children():
+        if widget != entry_frame:  # Não remover o entry_frame
+            widget.destroy()
+    
+    # Recriar os widgets básicos
+    label_game_name = ctk.CTkLabel(entry_frame, text="Nome do Jogo:")
+    label_game_name.grid(row=0, column=0, padx=10, pady=10)
+    entry_game_name = ctk.CTkEntry(entry_frame)
+    entry_game_name.grid(row=0, column=1, padx=10, pady=10)
+    
+    if is_admin:
+        # Criar widgets de admin
+        label_game_info = ctk.CTkLabel(entry_frame, text="Informações do Jogo:")
+        label_game_info.grid(row=1, column=0, padx=10, pady=10)
+        entry_game_info = ctk.CTkEntry(entry_frame)
+        entry_game_info.grid(row=1, column=1, padx=10, pady=10)
+
+        label_game_category = ctk.CTkLabel(entry_frame, text="Categoria do Jogo:")
+        label_game_category.grid(row=2, column=0, padx=10, pady=10)
+
+        label_game_review = ctk.CTkLabel(entry_frame, text="Review do Jogo:")
+        label_game_review.grid(row=3, column=0, padx=10, pady=10)
+        entry_game_review = ctk.CTkEntry(entry_frame)
+        entry_game_review.grid(row=3, column=1, padx=10, pady=10)
+
+        # Combobox com categorias de jogos
+        game_categories = ["Ação", "Aventura", "RPG", "Estratégia", "Simulação",
+                          "Desporto", "Puzzle", "Battle Royale", "Indie", "Moba",
+                          "Corrida", "Plataforma", "Sandbox", "Survival", "Horror",
+                          "FPS", "MMORPG", "Rogue-like", "Metroidvania", "Stealth",
+                          "Terror", "Open World"]
+        combobox_game_info = ctk.CTkComboBox(entry_frame, values=game_categories)
+        combobox_game_info.grid(row=2, column=1, padx=10, pady=10)
+
+        btn_save_game = ctk.CTkButton(add_game_frame, text="Adicionar Jogo", command=add_game)
+        btn_save_game.pack(pady=10)
+    
+    btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
+    btn_back_to_main.pack(pady=10)
+    
     add_game_frame.tkraise()
 
 def show_login_frame():
@@ -56,13 +117,15 @@ def add_game():
     game_name = entry_game_name.get()
     game_info = entry_game_info.get()
     game_category = combobox_game_info.get()
-    if game_name and game_info and game_category:
-        new_game = {"name": game_name, "info": game_info, "category": game_category}
+    game_review = entry_game_review.get()
+    if game_name and game_info and game_category and game_review:
+        new_game = {"name": game_name, "info": game_info, "category": game_category, "review": game_review}
         games.append(new_game)
         listbox_games.insert(ctk.END, game_name)
         save_games(games)
         entry_game_name.delete(0, ctk.END)
         entry_game_info.delete(0, ctk.END)
+        entry_game_review.delete(0, ctk.END)
         combobox_game_info.set("")  # Limpar a seleção da categoria
 
 def show_game_info(event):
@@ -156,46 +219,82 @@ def apply_filters():
 
     ctk.CTkButton(filter_window, text="Aplicar", command=confirm_filters).pack(pady=10)
 
+def check_user(username):
+    with open(new_user_file, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+    for line in lines:
+        fields = line.strip().split("|")
+        if fields[0] == username:
+            return True
+        
+    return False
+
+def verify_admin(username):
+    with open(admin_file, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+    for line in lines:
+        if line.strip() == username:
+            return True
+        
+    return False
 
 def login():
-    global current_user, games
+    global current_user, games, is_admin
 
     username = entry_login_user.get()
     password = entry_login_pass.get()
 
-    user_file = os.path.join(USER_FILES_DIR, f"{username}_data.txt")
-
-    if os.path.exists(user_file):
-        with open(user_file, "r") as file:
-            stored_username, stored_password = file.read().strip().split("|")
+    if os.path.exists(new_user_file):
+        with open(new_user_file, "r") as file:
+            lines = file.readlines()
+        
+        for line in lines:
+            fields = line.strip().split("|")
+            stored_username, stored_password = fields[0], fields[1]
             if username == stored_username and password == stored_password:
                 current_user = username
+                is_admin = verify_admin(username)
                 games = load_games()
                 listbox_games.delete(0, ctk.END)
                 for game in games:
                     listbox_games.insert(ctk.END, game["name"])
+
+                if is_admin:
+                    print(is_admin)
+                    btn_add_game.pack(side="left", padx=10, pady=10)  # Show "Add Game"
+                    btn_admin_dash = ctk.CTkButton(menu_bar, text="Admin Dashboard", width=100)
+                    btn_admin_dash.pack(side="left", padx=10, pady=10)
+                else:
+                    print(is_admin)
+
                 show_main_frame()
                 return
 
-    messagebox.showerror("Erro de Login", "Nome de usuário ou senha incorretos.")
+    messagebox.showerror("Erro de Login", "Nome de Utilizador ou Password incorretos.")
 
 def register():
     username = entry_register_user.get()
     password = entry_register_pass.get()
     confirm_password = entry_register_confirm.get()
 
+    if username == "" or password == "" or confirm_password == "":
+        messagebox.showerror("Erro", "Preencha todos o campos!")
+        return
+
     if password != confirm_password:
-        messagebox.showerror("Erro de Registo", "As senhas não coincidem.")
+        messagebox.showerror("Erro de Registo", "As Passwords não coincidem.")
+        return
+    
+    is_user = check_user(username)
+
+    if is_user:
+        messagebox.showerror("Erro de Registo", "Utilizador já existe.")
         return
 
-    user_file = os.path.join(USER_FILES_DIR, f"{username}_data.txt")
-
-    if os.path.exists(user_file):
-        messagebox.showerror("Erro de Registo", "Usuário já existe.")
-        return
-
-    with open(user_file, "w") as file:
-        file.write(f"{username}|{password}")
+    with open(new_user_file, "a") as file:
+        file.write(f"{username}|{password}\n")
 
     open(os.path.join(USER_FILES_DIR, f"{username}_games.txt"), "w").close()  # Criar ficheiro de jogos vazio
 
@@ -227,12 +326,12 @@ games = []
 login_frame = ctk.CTkFrame(app)
 login_frame.grid(row=1, column=0, sticky="nsew")
 
-label_login_user = ctk.CTkLabel(login_frame, text="Nome de Usuário:")
+label_login_user = ctk.CTkLabel(login_frame, text="Nome de Utilizador:")
 label_login_user.pack(pady=10)
 entry_login_user = ctk.CTkEntry(login_frame)
 entry_login_user.pack(pady=10)
 
-label_login_pass = ctk.CTkLabel(login_frame, text="Senha:")
+label_login_pass = ctk.CTkLabel(login_frame, text="Password:")
 label_login_pass.pack(pady=10)
 entry_login_pass = ctk.CTkEntry(login_frame, show="*")
 entry_login_pass.pack(pady=10)
@@ -247,22 +346,22 @@ btn_to_register.pack(pady=10)
 register_frame = ctk.CTkFrame(app)
 register_frame.grid(row=1, column=0, sticky="nsew")
 
-label_register_user = ctk.CTkLabel(register_frame, text="Nome de Usuário:")
+label_register_user = ctk.CTkLabel(register_frame, text="Nome de Utilizador:")
 label_register_user.pack(pady=10)
 entry_register_user = ctk.CTkEntry(register_frame)
 entry_register_user.pack(pady=10)
 
-label_register_pass = ctk.CTkLabel(register_frame, text="Senha:")
+label_register_pass = ctk.CTkLabel(register_frame, text="Password:")
 label_register_pass.pack(pady=10)
 entry_register_pass = ctk.CTkEntry(register_frame, show="*")
 entry_register_pass.pack(pady=10)
 
-label_register_confirm = ctk.CTkLabel(register_frame, text="Confirmar Senha:")
+label_register_confirm = ctk.CTkLabel(register_frame, text="Confirmar Password:")
 label_register_confirm.pack(pady=10)
 entry_register_confirm = ctk.CTkEntry(register_frame, show="*")
 entry_register_confirm.pack(pady=10)
 
-btn_register = ctk.CTkButton(register_frame, text="Registrar", command=register)
+btn_register = ctk.CTkButton(register_frame, text="Registar", command=register)
 btn_register.pack(pady=10)
 
 btn_to_login = ctk.CTkButton(register_frame, text="Voltar", command=show_login_frame)
@@ -325,29 +424,6 @@ label_game_name = ctk.CTkLabel(entry_frame, text="Nome do Jogo:")
 label_game_name.grid(row=0, column=0, padx=10, pady=10)
 entry_game_name = ctk.CTkEntry(entry_frame)
 entry_game_name.grid(row=0, column=1, padx=10, pady=10)
-
-label_game_info = ctk.CTkLabel(entry_frame, text="Informações do Jogo:")
-label_game_info.grid(row=1, column=0, padx=10, pady=10)
-entry_game_info = ctk.CTkEntry(entry_frame)
-entry_game_info.grid(row=1, column=1, padx=10, pady=10)
-
-label_game_category = ctk.CTkLabel(entry_frame, text="Categoria do Jogo:")
-label_game_category.grid(row=2, column=0, padx=10, pady=10)
-
-# Combobox com categorias de jogos
-game_categories = ["Ação", "Aventura", "RPG", "Estratégia", "Simulação",
-                    "Desporto", "Puzzle", "Battle Royale", "Indie", "Moba",
-                      "Corrida", "Plataforma", "Sandbox", "Survival", "Horror",
-                        "FPS", "MMORPG", "Rogue-like", "Metroidvania", "Stealth",
-                          "Terror", "Open World"]
-combobox_game_info = ctk.CTkComboBox(entry_frame, values=game_categories)
-combobox_game_info.grid(row=2, column=1, padx=10, pady=10)
-
-btn_save_game = ctk.CTkButton(add_game_frame, text="Adicionar Jogo", command=add_game)
-btn_save_game.pack(pady=10)
-
-btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
-btn_back_to_main.pack(pady=10)
 
 # Create the filter button
 btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=apply_filters)

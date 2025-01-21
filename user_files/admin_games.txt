@@ -9,3 +9,4 @@ Apex|123|Battle Royale|
 PUBG|123|Battle Royale|
 Demonologist|123|Terror|
 The Evil Within|123|Terror|
+Path of Exile|123|RPG|nunca joguei
