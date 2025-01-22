@@ -27,6 +27,7 @@ pathFormat = path_format()
 
 new_user_file = f".{pathFormat}user_files{pathFormat}users.txt"
 admin_file = f".{pathFormat}user_files{pathFormat}admin_data.txt"
+admin_games = f".{pathFormat}user_files{pathFormat}admin_games.txt"
 
 def get_user_file():
     """Retorna o caminho do ficheiro do utilizador atual."""
@@ -99,8 +100,8 @@ def show_add_game_frame():
         combobox_game_info = ctk.CTkComboBox(entry_frame, values=game_categories)
         combobox_game_info.grid(row=2, column=1, padx=10, pady=10)
 
-        btn_save_game = ctk.CTkButton(add_game_frame, text="Adicionar Jogo", command=add_game)
-        btn_save_game.pack(pady=10)
+    btn_save_game = ctk.CTkButton(add_game_frame, text="Adicionar Jogo", command=add_game)
+    btn_save_game.pack(pady=10)
     
     btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
     btn_back_to_main.pack(pady=10)
@@ -115,18 +116,60 @@ def show_register_frame():
 
 def add_game():
     game_name = entry_game_name.get()
-    game_info = entry_game_info.get()
-    game_category = combobox_game_info.get()
-    game_review = entry_game_review.get()
-    if game_name and game_info and game_category and game_review:
-        new_game = {"name": game_name, "info": game_info, "category": game_category, "review": game_review}
-        games.append(new_game)
-        listbox_games.insert(ctk.END, game_name)
-        save_games(games)
-        entry_game_name.delete(0, ctk.END)
-        entry_game_info.delete(0, ctk.END)
-        entry_game_review.delete(0, ctk.END)
-        combobox_game_info.set("")  # Limpar a seleção da categoria
+
+    if is_admin:
+        game_info = entry_game_info.get()
+        game_category = combobox_game_info.get()
+        game_review = entry_game_review.get()
+        if game_name and game_info and game_category and game_review:
+            new_game = {"name": game_name, "info": game_info, "category": game_category, "review": game_review}
+            games.append(new_game)
+            listbox_games.insert(ctk.END, game_name)
+            save_games(games)
+            entry_game_name.delete(0, ctk.END)
+            entry_game_info.delete(0, ctk.END)
+            entry_game_review.delete(0, ctk.END)
+            combobox_game_info.set("")  # Clear category selection
+    else:
+        if not search_user_games(game_name) or search_user_games(game_name):
+            entry_game_name.delete(0, ctk.END)
+
+def check_games(user_file):
+
+    temp_user_games = []
+
+    with open(user_file, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+    for line in lines:
+        fields = line.strip().split("|")
+
+        temp_user_games.append(fields[0].lower())
+
+    return temp_user_games
+
+def search_user_games(game_name):
+    user_file = os.path.join(USER_FILES_DIR, f"{current_user}_games.txt")
+    
+    temp_user_games = check_games(user_file)
+
+    if game_name.lower() in temp_user_games:
+        print("Jogo já existe") # Adicionar message box
+        return False
+
+    with open(admin_games, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+    for line in lines:
+        parts = line.strip().split("|")
+        if parts[0].lower() == game_name.lower():
+            with open(user_file, "a", encoding="utf-8") as file:
+                file.write(f"{parts[0]}|{parts[1]}|{parts[2]}|{parts[3]}\n")
+            
+            return True
+
+    print("Erro inesperado!")
+    return False
 
 def show_game_info(event):
     clear_game_info()
