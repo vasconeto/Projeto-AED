@@ -85,10 +85,7 @@ def show_add_game_frame():
         label_game_category = ctk.CTkLabel(entry_frame, text="Categoria do Jogo:")
         label_game_category.grid(row=2, column=0, padx=10, pady=10)
 
-        label_game_review = ctk.CTkLabel(entry_frame, text="Review do Jogo:")
-        label_game_review.grid(row=3, column=0, padx=10, pady=10)
-        entry_game_review = ctk.CTkEntry(entry_frame)
-        entry_game_review.grid(row=3, column=1, padx=10, pady=10)
+       
 
         # Combobox com categorias de jogos
         game_categories = ["Ação", "Aventura", "RPG", "Estratégia", "Simulação",
@@ -117,16 +114,16 @@ def add_game():
     game_name = entry_game_name.get()
     game_info = entry_game_info.get()
     game_category = combobox_game_info.get()
-    game_review = entry_game_review.get()
-    if game_name and game_info and game_category and game_review:
-        new_game = {"name": game_name, "info": game_info, "category": game_category, "review": game_review}
+    if game_name and game_info and game_category:
+        new_game = {"name": game_name, "info": game_info, "category": game_category}
         games.append(new_game)
         listbox_games.insert(ctk.END, game_name)
         save_games(games)
         entry_game_name.delete(0, ctk.END)
         entry_game_info.delete(0, ctk.END)
-        entry_game_review.delete(0, ctk.END)
         combobox_game_info.set("")  # Limpar a seleção da categoria
+        
+
 
 def show_game_info(event):
     clear_game_info()
@@ -134,6 +131,12 @@ def show_game_info(event):
     if selected_index:
         selected_game = games[selected_index[0]]
         info_label.configure(text=f"Informações do Jogo: {selected_game['info']}")
+        
+        label_game_review = ctk.CTkLabel(entry_frame, text="Review do Jogo:")
+        label_game_review.grid(row=3, column=0, padx=10, pady=10)
+        entry_game_review = ctk.CTkEntry(entry_frame)
+        entry_game_review.grid(row=3, column=1, padx=10, pady=10)
+
         btn_edit_game.pack(pady=10)
         btn_remove_game.pack(pady=10)
 
@@ -141,6 +144,7 @@ def clear_game_info():
     info_label.configure(text="Informações do Jogo: Selecione um jogo para ver os detalhes.")
     btn_edit_game.pack_forget()
     btn_remove_game.pack_forget()
+
 
 def edit_game():
     selected_index = listbox_games.curselection()
