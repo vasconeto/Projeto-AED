@@ -121,6 +121,8 @@ def add_game():
         entry_game_name.delete(0, ctk.END)
         entry_game_info.delete(0, ctk.END)
         combobox_game_info.set("")  # Limpar a seleção da categoria
+        show_main_frame()
+        
 
 def show_game_info(event):
     clear_game_info()

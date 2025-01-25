@@ -1,1 +1,3 @@
 Minecraft|123|Aventura|455|8
+Fortnite|Tiros|Battle Royale|Meh|5
+God of War|Kratos|Aventura|Muito Bom|10
