@@ -129,6 +129,7 @@ def show_register_frame():
 def add_game():
     global games
     game_name = entry_game_name.get()
+<<<<<<< HEAD
 
     if is_admin:  # Se for admin, adiciona manualmente
         game_info = entry_game_info.get()
@@ -165,6 +166,19 @@ def save_game_to_user_file(game):
     except Exception as e:
         messagebox.showerror("Erro", f"Não foi possível salvar o jogo: {e}")
 
+=======
+    game_info = entry_game_info.get()
+    game_category = combobox_game_info.get()
+    if game_name and game_info and game_category:
+        new_game = {"name": game_name, "info": game_info, "category": game_category, "review": "", "rating": ""}
+        games.append(new_game)
+        listbox_games.insert(ctk.END, game_name)
+        save_games(games)
+        entry_game_name.delete(0, ctk.END)
+        entry_game_info.delete(0, ctk.END)
+        combobox_game_info.set("")  # Limpar a seleção da categoria
+        show_main_frame()
+>>>>>>> 0715ba0a3ef098f6f61ac58f2cd1c1e3c6e85df6
 
 def get_favorites_file():
     if current_user:
@@ -199,6 +213,7 @@ def add_to_favorites():
             messagebox.showinfo("Informação", f"{selected_game_name} já está nos favoritos.")
     else:
         messagebox.showerror("Erro", "Selecione um jogo para adicionar aos favoritos.")
+<<<<<<< HEAD
 
 def refresh_listbox():
     listbox_games.delete(0, ctk.END)
@@ -211,6 +226,8 @@ def show_favorites():
     listbox_games.delete(0, ctk.END)
     for favorite in favorites:
         listbox_games.insert(ctk.END, favorite)
+=======
+>>>>>>> 0715ba0a3ef098f6f61ac58f2cd1c1e3c6e85df6
         
 # Mostra as informações do jogo
 def show_game_info(event):
