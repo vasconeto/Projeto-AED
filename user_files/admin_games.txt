@@ -6,3 +6,7 @@ Assassin's Creed Mirage|É um jogo de ação e aventura lançado em 5 de outubro
 Red Dead Redemption 2|É um jogo de ação e aventura desenvolvido pela Rockstar Games, lançado em 2018. Ambientado em 1899, o jogo segue Arthur Morgan, um fora-da-lei e membro da gangue Van der Linde, enquanto ele lida com o declínio do Velho Oeste. Os jogadores podem explorar um vasto mundo aberto, participar de tiroteios, roubos, caça, e interagir com personagens não jogáveis. O jogo é aclamado por sua narrativa envolvente, gráficos impressionantes e atenção aos detalhes|Open World||
 Final Fantasy VII|A história segue Cloud Strife, um mercenário que se junta ao grupo eco-terrorista AVALANCHE para lutar contra a megacorporação Shinra, que está drenando a energia vital do planeta. Ao longo da jornada, Cloud e seus aliados enfrentam o vilão Sephiroth, que busca destruir o planeta para se tornar um deus.|Ação||
 Minecraft|Jogo de construção e aventura onde os jogadores podem explorar um mundo gerado aleatoriamente, coletar recursos, criar ferramentas e construir estruturas. Com gráficos em blocos, o jogo oferece modos de sobrevivência e criativo, permitindo tanto a luta contra criaturas quanto a criação livre.|Aventura||
+Path of Exile|123|RPG||
+Path of Exile 2|1234|RPG||
+League of Legends|12345|Moba||
+CS:GO|123|FPS||
