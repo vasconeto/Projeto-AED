@@ -244,13 +244,13 @@ def rate_game():
 
         selected_game = games[selected_index[0]]
 
-        label_review = ctk.CTkLabel(rate_window, text="Review:")
+        label_review = ctk.CTkLabel(rate_window, text="Review:",text_color="black")
         label_review.pack(pady=10)
         entry_review = ctk.CTkEntry(rate_window)
         entry_review.insert(0, selected_game["review"])
         entry_review.pack(pady=10)
 
-        label_rating = ctk.CTkLabel(rate_window, text="Nota do Jogo:")
+        label_rating = ctk.CTkLabel(rate_window, text="Nota do Jogo:",text_color="black")
         label_rating.pack(pady=10)
         entry_rating = ctk.CTkEntry(rate_window)
         entry_rating.insert(0, selected_game["rating"])
@@ -515,7 +515,7 @@ image_label.pack(pady=10)
 btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
 btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=remove_game)
 
-btn_rate_game = ctk.CTkButton(main_info_frame, text="Rate Jogo", command=rate_game)
+btn_rate_game = ctk.CTkButton(main_info_frame, text="Rate Jogo", command=rate_game,text_color="black")
 btn_rate_game.pack(pady=30, padx=20)
 
 # Iniciar o loop principal
