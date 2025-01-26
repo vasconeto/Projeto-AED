@@ -128,6 +128,40 @@ def add_game():
         entry_game_info.delete(0, ctk.END)
         combobox_game_info.set("")  # Limpar a seleção da categoria
         show_main_frame()
+
+def get_favorites_file():
+    if current_user:
+        return os.path.join(USER_FILES_DIR, f"{current_user}_favorites.txt")
+    return None
+
+def load_favorites():
+    favorites = []
+    favorites_file = get_favorites_file()
+    if favorites_file and os.path.exists(favorites_file):
+        with open(favorites_file, "r") as file:
+            favorites = [line.strip() for line in file]
+    return favorites
+
+def save_favorites(favorites):
+    favorites_file = get_favorites_file()
+    if favorites_file:
+        with open(favorites_file, "w") as file:
+            for favorite in favorites:
+                file.write(f"{favorite}\n")
+
+def add_to_favorites():
+    selected_index = listbox_games.curselection()
+    if selected_index:
+        selected_game_name = games[selected_index[0]]["name"]
+        favorites = load_favorites()
+        if selected_game_name not in favorites:
+            favorites.append(selected_game_name)
+            save_favorites(favorites)
+            messagebox.showinfo("Sucesso", f"{selected_game_name} foi adicionado aos favoritos!")
+        else:
+            messagebox.showinfo("Informação", f"{selected_game_name} já está nos favoritos.")
+    else:
+        messagebox.showerror("Erro", "Selecione um jogo para adicionar aos favoritos.")
         
 # Mostra as informações do jogo
 def show_game_info(event):
@@ -164,6 +198,9 @@ def show_game_info(event):
 
         btn_remove_game = ctk.CTkButton(button_frame, text="Remover Jogo", command=remove_game)
         btn_remove_game.grid(row=0, column=4, padx=5)
+
+        btn_add_to_favorites = ctk.CTkButton(button_frame, text="Adicioanr aos Favoritos", command=add_to_favorites)
+        btn_add_to_favorites.grid(row=0, column=6, padx=5)
 
 # Apaga as informações do jogo quando é removido
 def clear_game_info():
@@ -242,7 +279,7 @@ def rate_game():
             if new_review and new_rating:
                 games[selected_index[0]]["review"] = new_review
                 games[selected_index[0]]["rating"] = new_rating
-                save_games(games)
+                save_games(games) 
                 rate_window.destroy()
         
         save_button = ctk.CTkButton(rate_window, text="Salvar", command=save_review)
@@ -295,6 +332,34 @@ def apply_filters():
 
     ctk.CTkButton(filter_window, text="Aplicar", command=confirm_filters).pack(pady=10)
 
+
+def count_users():
+    if os.path.exists(new_user_file):
+        with open(new_user_file, "r") as file:
+            lines = file.readlines()
+        return len(lines)
+    return 0
+
+def show_admin_dashboard():
+    admin_dashboard = ctk.CTkToplevel()
+    admin_dashboard.title("Admin Dashboard")
+    admin_dashboard.geometry("300x200")
+
+    # Count the number of users
+    num_users = count_users()
+
+    # Conta os jogos
+    num_games = len(games)
+
+
+    # Mostra numero de jogos
+    label_num_games = ctk.CTkLabel(admin_dashboard, text=f"Número de Jogos: {num_games}")
+    label_num_games.pack(pady=10)
+
+    # Display the number of users
+    label_num_users = ctk.CTkLabel(admin_dashboard, text=f"Número de Utilizadores: {num_users}")
+    label_num_users.pack(pady=10)
+
 # Identifica o utilizador
 def check_user(username):
     with open(new_user_file, "r", encoding="utf-8") as file:
@@ -343,7 +408,7 @@ def login():
                 if is_admin:
                     print(is_admin)
                     btn_add_game.pack(side="left", padx=10, pady=10)  # Show "Add Game"
-                    btn_admin_dash = ctk.CTkButton(menu_bar, text="Admin Dashboard", width=100)
+                    btn_admin_dash = ctk.CTkButton(menu_bar, text="Admin Dashboard", command=show_admin_dashboard)
                     btn_admin_dash.pack(side="left", padx=10, pady=10)
                 else:
                     print(is_admin)
@@ -383,9 +448,38 @@ def register():
 
 # Abre a janela do perfil
 def open_profile_window():
-    profile_window = ctk.CTkToplevel()
-    profile_window.title("Perfil do Usuário")
-    profile_window.geometry("300x200")
+    if current_user:
+        profile_window = ctk.CTkToplevel()
+        profile_window.title(f"Perfil do {current_user}")
+        profile_window.geometry("300x200")
+
+        # Conta os jogos
+        num_games = len(games)
+
+        # Conta os generos
+        genre_count = {}
+        for game in games:
+            genre = game["category"]
+            if genre in genre_count:
+                genre_count[genre] += 1
+            else:
+                genre_count[genre] = 1
+
+        # Genero mais usado
+        if genre_count:
+            most_common_genre = max(genre_count, key=genre_count.get)
+            most_common_genre_count = genre_count[most_common_genre]
+        else:
+            most_common_genre = "N/A"
+            most_common_genre_count = 0
+
+        # Mostra numero de jogos
+        label_num_games = ctk.CTkLabel(profile_window, text=f"Número de Jogos: {num_games}")
+        label_num_games.pack(pady=10)
+
+        # Mostra o genero mais usado
+        label_most_common_genre = ctk.CTkLabel(profile_window, text=f"Género Mais Comum: {most_common_genre} ({most_common_genre_count} jogos)")
+        label_most_common_genre.pack(pady=10)
 
     def logout():
         profile_window.destroy()
@@ -505,6 +599,7 @@ info_label.pack(pady=10, padx=20)
 
 btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
 btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=remove_game)
+btn_add_to_favorites = ctk.CTkButton(main_info_frame, text="Adicionar aos Favoritos", command=add_to_favorites)
 
 btn_rate_game = ctk.CTkButton(main_info_frame, text="Rate Jogo", command=rate_game)
 btn_rate_game.pack(pady=30, padx=20)
