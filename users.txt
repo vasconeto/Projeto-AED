@@ -1,1 +1,2 @@
-dinis|123
+admin|123
+teste|teste

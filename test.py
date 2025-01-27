@@ -17,6 +17,7 @@ combobox_game_info = None
 btn_save_game = None
 filter_window = None
 
+
 # Diretório onde os ficheiros dos utilizadores serão armazenados
 USER_FILES_DIR = "user_files"
 os.makedirs(USER_FILES_DIR, exist_ok=True)
@@ -50,7 +51,7 @@ def load_games():
 
 def load_admin_games():
     games = []
-    admin_file = f"{pathFormat}user_files{pathFormat}admin_games.txt"
+    admin_file = f".{pathFormat}user_files{pathFormat}admin_games.txt"
     if admin_file and os.path.exists(admin_file):
         with open(admin_file, "r") as file:
             for line in file:
@@ -66,14 +67,14 @@ def save_games(games):
             for game in games:
                 file.write(f"{game['name']}|{game['info']}|{game['category']}|{game['review']}|{game['rating']}\n")
 
-# 
+# Mostra o frame principal
 def show_main_frame():
     main_frame.tkraise()
     clear_game_info()
 
 # Abre a janela de adicionar jogo
 def show_add_game_frame():
-    global entry_game_info, combobox_game_info, btn_save_game, entry_game_name
+    global combobox_game_info, btn_save_game, entry_game_name, entry_game_info
     
     # Limpar todos os widgets do entry_frame
     for widget in entry_frame.winfo_children():
@@ -114,6 +115,9 @@ def show_add_game_frame():
     
     btn_back_to_main = ctk.CTkButton(add_game_frame, text="Voltar", command=show_main_frame)
     btn_back_to_main.pack(pady=10)
+
+
+
     
     add_game_frame.tkraise()
 
@@ -129,7 +133,12 @@ def show_register_frame():
 def add_game():
     global games
     game_name = entry_game_name.get()
-<<<<<<< HEAD
+
+    if any(game["name"].lower() == game_name.lower() for game in games):
+        messagebox.showerror("Erro", "Este jogo já foi adicionado à lista!")
+        return
+    
+    entry_game_name.delete(0, ctk.END)  # Limpa a caixa de entrada do nome do jogo
 
     if is_admin:  # Se for admin, adiciona manualmente
         game_info = entry_game_info.get()
@@ -150,6 +159,9 @@ def add_game():
         admin_games = load_admin_games()
         for game in admin_games:
             if game["name"] == game_name:
+                # Clear the review and rating fields
+                game["review"] = ""
+                game["rating"] = ""
                 games.append(game)
                 save_games(games)  # Salva os jogos no ficheiro do utilizador atual
                 save_game_to_user_file(game)  # Salva o jogo no ficheiro txt do utilizador atual
@@ -158,6 +170,9 @@ def add_game():
                 return
 
 def save_game_to_user_file(game):
+    """
+    Salva um jogo no ficheiro do utilizador atual.
+    """
     try:
         current_user_file = f"{current_user}.txt"  # Nome do ficheiro com base no utilizador atual
         with open(current_user_file, "a") as file:
@@ -166,26 +181,28 @@ def save_game_to_user_file(game):
     except Exception as e:
         messagebox.showerror("Erro", f"Não foi possível salvar o jogo: {e}")
 
-=======
-    game_info = entry_game_info.get()
-    game_category = combobox_game_info.get()
-    if game_name and game_info and game_category:
-        new_game = {"name": game_name, "info": game_info, "category": game_category, "review": "", "rating": ""}
-        games.append(new_game)
-        listbox_games.insert(ctk.END, game_name)
-        save_games(games)
-        entry_game_name.delete(0, ctk.END)
-        entry_game_info.delete(0, ctk.END)
-        combobox_game_info.set("")  # Limpar a seleção da categoria
-        show_main_frame()
->>>>>>> 0715ba0a3ef098f6f61ac58f2cd1c1e3c6e85df6
+       
+
+
+            
+        
+
+
+
+
+
+
+
+
 
 def get_favorites_file():
+    """Retorna o caminho do ficheiro de favoritos do utilizador atual."""
     if current_user:
         return os.path.join(USER_FILES_DIR, f"{current_user}_favorites.txt")
     return None
 
 def load_favorites():
+    """Carrega a lista de favoritos do ficheiro do utilizador atual."""
     favorites = []
     favorites_file = get_favorites_file()
     if favorites_file and os.path.exists(favorites_file):
@@ -194,13 +211,16 @@ def load_favorites():
     return favorites
 
 def save_favorites(favorites):
+    """Guarda a lista de favoritos no ficheiro do utilizador atual."""
     favorites_file = get_favorites_file()
     if favorites_file:
         with open(favorites_file, "w") as file:
             for favorite in favorites:
                 file.write(f"{favorite}\n")
 
+
 def add_to_favorites():
+    """Adiciona o jogo selecionado à lista de favoritos."""
     selected_index = listbox_games.curselection()
     if selected_index:
         selected_game_name = games[selected_index[0]]["name"]
@@ -213,7 +233,23 @@ def add_to_favorites():
             messagebox.showinfo("Informação", f"{selected_game_name} já está nos favoritos.")
     else:
         messagebox.showerror("Erro", "Selecione um jogo para adicionar aos favoritos.")
-<<<<<<< HEAD
+
+def remove_from_favorites():
+    """Remove o jogo selecionado da lista de favoritos."""
+    selected_index = listbox_games.curselection()
+    if selected_index:
+        selected_game_name = listbox_games.get(selected_index[0])
+        favorites = load_favorites()
+        if selected_game_name in favorites:
+            favorites.remove(selected_game_name)
+            save_favorites(favorites)
+            messagebox.showinfo("Sucesso", f"{selected_game_name} foi removido dos favoritos!")
+            show_favorites()  # Refresh the favorites list
+        else:
+            messagebox.showinfo("Informação", f"{selected_game_name} não está nos favoritos.")
+
+
+
 
 def refresh_listbox():
     listbox_games.delete(0, ctk.END)
@@ -222,12 +258,22 @@ def refresh_listbox():
 
 
 def show_favorites():
+    """Mostra a lista de jogos favoritos do utilizador atual."""
     favorites = load_favorites()
-    listbox_games.delete(0, ctk.END)
-    for favorite in favorites:
-        listbox_games.insert(ctk.END, favorite)
-=======
->>>>>>> 0715ba0a3ef098f6f61ac58f2cd1c1e3c6e85df6
+    listbox_games.delete(0, ctk.END)  # Limpar a lista atual na listbox
+
+
+    if favorites:
+        # Se houver favoritos, exibe-os na listbox
+        for favorite in favorites:
+            listbox_games.insert(ctk.END, favorite)
+    else:
+        # Caso contrário, exibe uma mensagem informando que não há favoritos
+        messagebox.showinfo("Informação", "Nenhum jogo favorito encontrado.")
+
+
+
+
         
 # Mostra as informações do jogo
 def show_game_info(event):
@@ -265,7 +311,7 @@ def show_game_info(event):
         btn_remove_game = ctk.CTkButton(button_frame, text="Remover Jogo", command=remove_game)
         btn_remove_game.grid(row=0, column=4, padx=5)
 
-        btn_add_to_favorites = ctk.CTkButton(button_frame, text="Adicioanr aos Favoritos", command=add_to_favorites)
+        btn_add_to_favorites = ctk.CTkButton(button_frame, text="Adicionar aos Favoritos", command=add_to_favorites)
         btn_add_to_favorites.grid(row=0, column=6, padx=5)
 
 # Apaga as informações do jogo quando é removido
@@ -345,7 +391,7 @@ def rate_game():
             if new_review and new_rating:
                 games[selected_index[0]]["review"] = new_review
                 games[selected_index[0]]["rating"] = new_rating
-                save_games(games) 
+                save_games(games)
                 rate_window.destroy()
         
         save_button = ctk.CTkButton(rate_window, text="Salvar", command=save_review)
@@ -371,11 +417,21 @@ def search_games():
     if not listbox_games.size():
         listbox_games.insert(ctk.END, "Nenhum jogo encontrado.")
 
-# Aplcia os filtros de pesquisa
+
+
 def apply_filters():
+    global filter_window
+
+    if filter_window and filter_window.winfo_exists():
+        filter_window.destroy()
+
     filter_window = Toplevel(app)
     filter_window.title("Filtrar Jogos")
-    filter_window.geometry("300x400")
+    filter_window.geometry("350x500")  # Aumentar a altura para acomodar mais conteúdo
+
+    # Frame para os filtros
+    filter_frame = ctk.CTkFrame(filter_window)
+    filter_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
     # Obter categorias únicas
     categories = sorted(set(game["category"] for game in games))
@@ -384,7 +440,11 @@ def apply_filters():
     check_vars = {category: ctk.BooleanVar() for category in categories}
 
     for category, var in check_vars.items():
-        ctk.CTkCheckBox(filter_window, text=category, variable=var).pack(anchor="w", padx=10, pady=5)
+        ctk.CTkCheckBox(filter_frame, text=category, variable=var).pack(anchor="w", padx=5, pady=5)
+
+    # Frame para os botões
+    button_frame = ctk.CTkFrame(filter_window)
+    button_frame.pack(fill="x", pady=10)
 
     def confirm_filters():
         selected_filters = [cat for cat, var in check_vars.items() if var.get()]
@@ -396,7 +456,37 @@ def apply_filters():
 
         filter_window.destroy()
 
-    ctk.CTkButton(filter_window, text="Aplicar", command=confirm_filters).pack(pady=10)
+    # Botões "Aplicar" e "Mostrar Favoritos"
+    ctk.CTkButton(button_frame, text="Aplicar", command=confirm_filters).pack(side="left", padx=10)
+    ctk.CTkButton(button_frame, text="Mostrar Favoritos", command=show_favorites).pack(side="right", padx=10)
+
+    
+
+    
+
+
+# Identifica o utilizador
+def check_user(username):
+    with open(new_user_file, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+    for line in lines:
+        fields = line.strip().split("|")
+        if fields[0] == username:
+            return True
+        
+    return False
+
+# Verifica se é admin
+def verify_admin(username):
+    with open(admin_file, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+    for line in lines:
+        if line.strip() == username:
+            return True
+        
+    return False
 
 
 def count_users():
@@ -426,28 +516,7 @@ def show_admin_dashboard():
     label_num_users = ctk.CTkLabel(admin_dashboard, text=f"Número de Utilizadores: {num_users}")
     label_num_users.pack(pady=10)
 
-# Identifica o utilizador
-def check_user(username):
-    with open(new_user_file, "r", encoding="utf-8") as file:
-        lines = file.readlines()
 
-    for line in lines:
-        fields = line.strip().split("|")
-        if fields[0] == username:
-            return True
-        
-    return False
-
-# Verifica se é admin
-def verify_admin(username):
-    with open(admin_file, "r", encoding="utf-8") as file:
-        lines = file.readlines()
-
-    for line in lines:
-        if line.strip() == username:
-            return True
-        
-    return False
 
 # Função do login
 def login():
@@ -474,15 +543,23 @@ def login():
                 if is_admin:
                     print(is_admin)
                     btn_add_game.pack(side="left", padx=10, pady=10)  # Show "Add Game"
-                    btn_admin_dash = ctk.CTkButton(menu_bar, text="Admin Dashboard", command=show_admin_dashboard)
+                    btn_admin_dash = ctk.CTkButton(menu_bar, text="Admin Dashboard", width=100, command=show_admin_dashboard)
                     btn_admin_dash.pack(side="left", padx=10, pady=10)
                 else:
                     print(is_admin)
+
+                # Limpa as caixas de entrada mesmo após erro
+                entry_login_user.delete(0, ctk.END)
+                entry_login_pass.delete(0, ctk.END)
 
                 show_main_frame()
                 return
 
     messagebox.showerror("Erro de Login", "Nome de Utilizador ou Password incorretos.")
+
+    # Limpa as caixas de entrada mesmo após erro
+    entry_login_user.delete(0, ctk.END)
+    entry_login_pass.delete(0, ctk.END)
 
 # Função do registo
 def register():
@@ -508,11 +585,14 @@ def register():
         file.write(f"{username}|{password}\n")
 
     open(os.path.join(USER_FILES_DIR, f"{username}_games.txt"), "w").close()  # Criar ficheiro de jogos vazio
+    open(os.path.join(USER_FILES_DIR, f"{username}_favorites.txt"), "w").close()  # Criar ficheiro de favoritos vazio
+    
 
     messagebox.showinfo("Registo", "Registo concluído com sucesso!")
     show_login_frame()
 
-# Abre a janela do perfil
+
+    # Abre a janela do perfil
 def open_profile_window():
     if current_user:
         profile_window = ctk.CTkToplevel()
@@ -580,6 +660,7 @@ games = []
 login_frame = ctk.CTkFrame(app)
 login_frame.grid(row=1, column=0, sticky="nsew")
 
+# Campos de Login
 label_login_user = ctk.CTkLabel(login_frame, text="Nome de Utilizador:")
 label_login_user.pack(pady=10)
 entry_login_user = ctk.CTkEntry(login_frame)
@@ -590,6 +671,7 @@ label_login_pass.pack(pady=10)
 entry_login_pass = ctk.CTkEntry(login_frame, show="*")
 entry_login_pass.pack(pady=10)
 
+# Botões de Login
 btn_login = ctk.CTkButton(login_frame, text="Login", command=login)
 btn_login.pack(pady=10)
 
@@ -600,6 +682,7 @@ btn_to_register.pack(pady=10)
 register_frame = ctk.CTkFrame(app)
 register_frame.grid(row=1, column=0, sticky="nsew")
 
+# Campos de Registo
 label_register_user = ctk.CTkLabel(register_frame, text="Nome de Utilizador:")
 label_register_user.pack(pady=10)
 entry_register_user = ctk.CTkEntry(register_frame)
@@ -615,17 +698,18 @@ label_register_confirm.pack(pady=10)
 entry_register_confirm = ctk.CTkEntry(register_frame, show="*")
 entry_register_confirm.pack(pady=10)
 
+# Botões de Registo
 btn_register = ctk.CTkButton(register_frame, text="Registar", command=register)
 btn_register.pack(pady=10)
 
 btn_to_login = ctk.CTkButton(register_frame, text="Voltar", command=show_login_frame)
 btn_to_login.pack(pady=10)
 
-# Frame principal
+# Frame Principal
 main_frame = ctk.CTkFrame(app)
 main_frame.grid(row=1, column=0, sticky="nsew")
 
-# Barra de menu
+# Barra de Menu
 menu_bar = ctk.CTkFrame(main_frame, corner_radius=0)
 menu_bar.pack(side="top", anchor="nw", fill="x")
 
@@ -639,8 +723,7 @@ btn_perfil = ctk.CTkButton(menu_bar, text="Perfil", width=100, command=open_prof
 btn_perfil.pack(side="right", padx=10, pady=10)
 
 # Lista de Jogos
-
-main_list_frame = ctk.CTkFrame(main_frame, height= 300, width=300)
+main_list_frame = ctk.CTkFrame(main_frame, height=300, width=300)
 main_list_frame.pack(side="left", anchor="nw", fill="y", padx=20)
 
 listbox_games = Listbox(main_list_frame)
@@ -663,7 +746,7 @@ search_button.pack(side="left", padx=5)
 btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=apply_filters)
 btn_filter.pack(side="left", padx=5)
 
-# Informação do Jogo
+# Informações do Jogo
 main_info_frame = ctk.CTkFrame(main_frame)
 main_info_frame.pack(fill="both", expand=True)
 
@@ -673,11 +756,14 @@ info_label.pack(pady=10, padx=20)
 btn_edit_game = ctk.CTkButton(main_info_frame, text="Editar Jogo", command=edit_game)
 btn_remove_game = ctk.CTkButton(main_info_frame, text="Remover Jogo", command=remove_game)
 btn_add_to_favorites = ctk.CTkButton(main_info_frame, text="Adicionar aos Favoritos", command=add_to_favorites)
+btn_remove_favorite = ctk.CTkButton(main_frame, text="Remover dos Favoritos", command=remove_from_favorites)
+btn_remove_favorite.pack(pady=10)
+
 
 btn_rate_game = ctk.CTkButton(main_info_frame, text="Rate Jogo", command=rate_game)
 btn_rate_game.pack(pady=30, padx=20)
 
-# Frame para adicionar jogos
+# Frame para Adicionar Jogos
 add_game_frame = ctk.CTkFrame(app)
 add_game_frame.grid(row=1, column=0, sticky="nsew")
 
@@ -692,12 +778,6 @@ label_game_name.grid(row=0, column=0, padx=10, pady=10)
 entry_game_name = ctk.CTkEntry(entry_frame)
 entry_game_name.grid(row=0, column=1, padx=10, pady=10)
 
-# Create the filter button
-btn_filter = ctk.CTkButton(search_frame, text="≡", width=30, command=apply_filters)
-btn_filter.pack(side="left", padx=10, pady=10)
-
-# Adjust the filter button position
-btn_filter.pack(side="left", padx=5)
 
 # Inicializar o primeiro frame
 show_login_frame()
