@@ -1,6 +1,1 @@
-<<<<<<< HEAD
-Final Fantasy VII
-Assassin's Creed Mirage
-=======
-Red Dead Redemption 2
->>>>>>> 0715ba0a3ef098f6f61ac58f2cd1c1e3c6e85df6
+
