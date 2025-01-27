@@ -1,2 +1,0 @@
-ID ; NOME JOGO    ; Game info
-483; Path of Exile; lorem ipsum
