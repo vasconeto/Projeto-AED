@@ -1,2 +1,0 @@
-tem aqui um site com widgets e cenas assim se precisarem de pesquisar alguma coisa 
-https://customtkinter.tomschimansky.com/documentation/widgets/scrollbar
