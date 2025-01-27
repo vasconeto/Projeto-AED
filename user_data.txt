@@ -1,2 +1,0 @@
-USER : JOGOS ADQUIRIDOS : FAVORITOS
-admin:jogo1;jogo2;jogo3:jogo1;jogo2;jogo3
